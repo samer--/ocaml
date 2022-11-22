@@ -1,0 +1,20 @@
+#use "/Users/samer/.ocamlinit"
+
+#require "delimcc";;
+#load "utils.cmo";;
+#load "dist.cmo";;
+#load "monads.cmo";;
+#load "lazydata.cmo";;
+#load "monadreps.cmo";;
+#load "treemonads.cmo";;
+#load "store.cmo";;
+#load "monadst.cmo";;
+#load "prob.cmo";;
+#load "probimps.cmo";;
+#load "inference3.cmo";;
+#load "inference2.cmo";;
+#load "inference2H.cmo";;
+#load "inference1.cmo";;
+#load "notes.cmo";;
+#load "grammar.cmo";;
+#use "johnson.ml";;
