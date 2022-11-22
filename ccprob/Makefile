@@ -64,17 +64,17 @@ clean::
 runhans: hanstest
 	./hanstest
 
-run: $(OBJECTS)
+hansei_lib:
+	make -C $(HANSEI)
+
+run: hansei_lib $(OBJECTS) 
 	$(OCAML_PROB) $(INCLUDES) nums.cma
 
 hanstest: $(OBJECTS) inference2H.cmo inference4.cmo hanstest.ml
 	$(OCAMLC) -o hanstest $(INCLUDES) -I $(HANSEI) prob.cma $(OBJECTS) inference4.cmo inference2H.cmo hanstest.ml
 
-delimcc:
-	$(OCAML) $(INCLUDES) -I $(HANSEI) pMap.cmo
-
 hansei:
 	$(OCAML_HANSEI) $(INCLUDES) -I $(HANSEI) prob.cma nums.cma 
 
-johnson: johnson.ml johnson.cmo dist.cmo dist.cmi
+johnson: $(OBJECTS) johnson.ml johnson.cmo dist.cmo dist.cmi
 	$(OCAMLC) -o johnson $(OBJECTS) johnson.cmo
