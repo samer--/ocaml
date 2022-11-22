@@ -27,8 +27,9 @@ The ideas behind this implementation are:
 
 ## Prequisites
 
-You need an OCaml with a working lablgtk package installed. Hence you might also need
-an X11 server unless you have a Gtk built for Mac OS using the native graphics system.
+You need an OCaml with packages graphics, lablgtk2, cairo2 and cairo2-gtk.
+You might also need an X11 server unless you have a Gtk built for Mac OS using the native 
+graphics system.
 
 ## Building
 
