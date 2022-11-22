@@ -18,3 +18,6 @@ in the Makefile aren't working and needs a bit of a refresh.
 The included history files contain records of some of my command line
 interactions, so when everything is working again, they will be a usefull
 reminder of how this works in practise.
+
+NB. The code under okmij is NOT mine - it was written by Oleg Kiselyov.
+See https://okmij.org/ftp/kakuritu/Hansei.html 
