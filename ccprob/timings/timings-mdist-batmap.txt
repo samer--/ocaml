@@ -1,0 +1,20 @@
+./hanstest
+
+----- MakeRef1(TM) (Infer2) -----
+
+exact_reify test_main                	---> Time: 0.080404 s
+get_samples 10000 main_simple        	---> Time: 0.380153 s
+importance_sample 1000 main_simple  	---> evidence = 0.00072585 | Time: 0.220066 s
+importance_sample 5000 main_simple  	---> evidence = 0.000491681 | Time: 1.25573 s
+importance_sample 10000 main_simple  	---> evidence = 0.000325311 | Time: 2.17228 s
+importance_sample 2000 main_medium  	---> evidence = 0.000181406 | Time: 0.521436 s
+importance_sample 50000 main_large   	---> evidence = 5.13216e-07 | Time: 21.3909 s
+
+----- MakeRef1(TM) (Infer2H) -----
+
+exact_reify test_main                	---> Time: 0.079275 s
+get_samples 10000 main_simple        	---> Time: 0.376666 s
+importance_sample 1000 main_simple  	---> evidence = 0 | Time: 0.159849 s
+importance_sample 5000 main_simple  	---> evidence = 0 | Time: 0.823526 s
+importance_sample 10000 main_simple  	---> evidence = 0 | Time: 1.65674 s
+importance_sample 2000 main_medium  	---> evidence = 0 | Time: 0.409215 s

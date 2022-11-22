@@ -1,0 +1,138 @@
+ocamlfind ocamlc -g -package batteries -linkpkg -c -I /Users/samer/src/okmij/caml-shift probimps.ml
+ocamlfind ocamlc -g -package batteries -linkpkg -o perftest -I /Users/samer/src/okmij/caml-shift -dllpath /Users/samer/src/okmij/caml-shift delimcc.cma utils.cmo dist.cmo lazydata.cmo monads.cmo monadreps.cmo store.cmo prob.cmo inference3.cmo notes.cmo inference2.cmo inference1.cmo probimps.cmo perftest.ml
+./perftest
+
+----- Make(TM) -----
+
+exact_reify test_main             	---> Time: 0.611601 s
+get_samples'' 10000 main_simple   	---> Time: 2.25213 s
+get_samples' 10000 main_simple    	---> Time: 2.81023 s
+get_samples 10000 main_simple     	---> Time: 2.93529 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.000476269 | Time: 1.47894 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.000427298 | Time: 6.8205 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000381555 | Time: 12.9471 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000416462 | Time: 5.95084 s
+importance_sample 1 2000 main_medium 	---> evidence = 0.000201825 | Time: 3.28903 s
+importance_sample' 1 2000 main_medium 	---> evidence = 0.0002142 | Time: 3.01665 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 0.000162 | Time: 3.08973 s
+importance_sample 1 20000 main_large  	---> evidence = 0 | Time: 54.8261 s
+
+----- ProbTree -----
+
+exact_reify test_main             	---> Time: 0.513068 s
+get_samples'' 10000 main_simple   	---> Time: 1.93533 s
+get_samples' 10000 main_simple    	---> Time: 2.33784 s
+get_samples 10000 main_simple     	---> Time: 2.33786 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.000516825 | Time: 1.16831 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.000430166 | Time: 5.81499 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000492199 | Time: 11.6987 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000278679 | Time: 5.29906 s
+importance_sample 1 2000 main_medium 	---> evidence = 0.0002025 | Time: 2.80308 s
+importance_sample' 1 2000 main_medium 	---> evidence = 0.000135 | Time: 2.78403 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 5.87813e-05 | Time: 2.76485 s
+importance_sample 1 20000 main_large  	---> evidence = 7.83675e-07 | Time: 51.3284 s
+
+----- ProbTreeST -----
+
+exact_reify test_main             	---> Time: 0.467004 s
+get_samples'' 10000 main_simple   	---> Time: 1.82958 s
+get_samples' 10000 main_simple    	---> Time: 2.30812 s
+get_samples 10000 main_simple     	---> Time: 2.32744 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.00116595 | Time: 1.1024 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.000420435 | Time: 5.52543 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000550963 | Time: 10.9631 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000674503 | Time: 4.93293 s
+importance_sample 1 2000 main_medium 	---> evidence = 0.00021195 | Time: 2.66983 s
+importance_sample' 1 2000 main_medium 	---> evidence = 0.00020385 | Time: 2.60815 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 8.8875e-05 | Time: 2.57542 s
+importance_sample 1 20000 main_large  	---> evidence = 0 | Time: 48.4336 s
+
+----- MakeST (TM) -----
+
+exact_reify test_main             	---> Time: 0.557637 s
+get_samples'' 10000 main_simple   	---> Time: 2.47578 s
+get_samples' 10000 main_simple    	---> Time: 2.84661 s
+get_samples 10000 main_simple     	---> Time: 2.86751 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.00047475 | Time: 1.41637 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.000485258 | Time: 7.06138 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000499866 | Time: 14.2323 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000510649 | Time: 6.05435 s
+importance_sample 1 2000 main_medium 	---> evidence = 0.0001566 | Time: 3.51553 s
+importance_sample' 1 2000 main_medium 	---> evidence = 0.000110025 | Time: 3.42501 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 3.94875e-05 | Time: 3.43069 s
+importance_sample 1 20000 main_large  	---> evidence = 4.2768e-07 | Time: 61.4605 s
+
+----- ProbTreeRef -----
+
+exact_reify test_main             	---> Time: 0.331016 s
+get_samples'' 10000 main_simple   	---> Time: 1.415 s
+get_samples' 10000 main_simple    	---> Time: 1.81802 s
+get_samples 10000 main_simple     	---> Time: 1.82325 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.0002511 | Time: 0.852518 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.00053838 | Time: 4.17962 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000428063 | Time: 9.62407 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000598153 | Time: 3.06993 s
+importance_sample 1 2000 main_medium 	---> evidence = 0.000137025 | Time: 2.05792 s
+importance_sample' 1 2000 main_medium 	---> evidence = 0.0001188 | Time: 1.99623 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 0.000278072 | Time: 1.91164 s
+importance_sample 1 20000 main_large  	---> evidence = 0 | Time: 35.4421 s
+
+----- ProbTreeRef1 -----
+
+exact_reify test_main             	---> Time: 0.327183 s
+get_samples'' 10000 main_simple   	---> Time: 1.42499 s
+get_samples' 10000 main_simple    	---> Time: 1.81734 s
+get_samples 10000 main_simple     	---> Time: 1.80967 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.000357975 | Time: 0.831705 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.000367627 | Time: 4.26118 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000516285 | Time: 8.4579 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000589497 | Time: 3.05593 s
+importance_sample 1 2000 main_medium 	---> evidence = 0.0001116 | Time: 2.04069 s
+importance_sample' 1 2000 main_medium 	---> evidence = 6.78375e-05 | Time: 1.98951 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 0.00016335 | Time: 1.94442 s
+importance_sample 1 20000 main_large  	---> evidence = 5.832e-07 | Time: 34.8969 s
+
+----- MakeRef (TM) -----
+
+exact_reify test_main             	---> Time: 0.395981 s
+get_samples'' 10000 main_simple   	---> Time: 1.92435 s
+get_samples' 10000 main_simple    	---> Time: 2.34722 s
+get_samples 10000 main_simple     	---> Time: 2.34801 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.00063675 | Time: 1.08595 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.00037431 | Time: 5.47351 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000529616 | Time: 10.9665 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000227651 | Time: 3.80293 s
+importance_sample 1 2000 main_medium 	---> evidence = 6.48e-05 | Time: 2.66297 s
+importance_sample' 1 2000 main_medium 	---> evidence = 0.000162844 | Time: 2.56077 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 0.000204525 | Time: 2.4857 s
+importance_sample 1 20000 main_large  	---> evidence = 3.888e-07 | Time: 44.8521 s
+
+----- MakeRef1 (TM) -----
+
+exact_reify test_main             	---> Time: 0.350977 s
+get_samples'' 10000 main_simple   	---> Time: 1.58659 s
+get_samples' 10000 main_simple    	---> Time: 2.0267 s
+get_samples 10000 main_simple     	---> Time: 1.99342 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.000729 | Time: 0.933069 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.000300443 | Time: 4.71493 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000429058 | Time: 9.44689 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000722164 | Time: 3.34721 s
+importance_sample 1 2000 main_medium 	---> evidence = 7.96641e-05 | Time: 2.26239 s
+importance_sample' 1 2000 main_medium 	---> evidence = 0.000159469 | Time: 2.17333 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 8.45156e-05 | Time: 2.12983 s
+importance_sample 1 20000 main_large  	---> evidence = 2.916e-07 | Time: 39.2041 s
+
+----- MakeRef2 (TM) -----
+
+exact_reify test_main             	---> Time: 0.377941 s
+get_samples'' 10000 main_simple   	---> Time: 1.75361 s
+get_samples' 10000 main_simple    	---> Time: 2.20357 s
+get_samples 10000 main_simple     	---> Time: 2.19713 s
+importance_sample 1 1000 main_simple 	---> evidence = 0.000348525 | Time: 1.02798 s
+importance_sample 1 5000 main_simple 	---> evidence = 0.000602595 | Time: 5.17676 s
+importance_sample 1 10000 main_simple 	---> evidence = 0.000550536 | Time: 10.3727 s
+importance_sample 2 1000 main_simple 	---> evidence = 0.000755139 | Time: 3.56444 s
+importance_sample 1 2000 main_medium 	---> evidence = 0.0001296 | Time: 2.50111 s
+importance_sample' 1 2000 main_medium 	---> evidence = 0.000199631 | Time: 2.47093 s
+importance_sample'' 1 2000 main_medium 	---> evidence = 7.83e-05 | Time: 2.33725 s
+importance_sample 1 20000 main_large  	---> evidence = 8.9424e-07 | Time: 42.6341 s

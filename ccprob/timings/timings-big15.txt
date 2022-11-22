@@ -1,0 +1,62 @@
+ocamlfind ocamlc -g -package batteries -linkpkg -c -I /Users/samer/src/okmij/caml-shift inference2.ml
+ocamlfind ocamlc -g -package batteries -linkpkg -o hanstest -I /Users/samer/src/okmij/caml-shift -I /Users/samer/src/okmij/hansei -dllpath /Users/samer/src/okmij/caml-shift delimcc.cma prob.cma utils.cmo dist.cmo lazydata.cmo monads.cmo treemonads.cmo monadreps.cmo store.cmo prob.cmo inference3.cmo notes.cmo inference2.cmo probimps.cmo inferenceF.cmo inference4.cmo inference2H.cmo hanstest.ml
+./hanstest
+
+----- MakeRef1(ATM) (Infer3) -----
+
+exact_reify test_main                	---> Time: 0.078244 s
+get_samples 10000 main_simple        	---> Time: 0.914474 s
+importance_sample 1000 main_simple  	---> evidence = 0.000212625 | Time: 0.523979 s
+importance_sample 5000 main_simple  	---> evidence = 0.000459675 | Time: 2.46964 s
+importance_sample 10000 main_simple  	---> evidence = 0.000480038 | Time: 4.90326 s
+importance_sample 2000 main_medium  	---> evidence = 0.00036045 | Time: 1.18351 s
+importance_sample 50000 main_large   	---> evidence = 3.888e-07 | Time: 57.4741 s
+
+----- MakeRef1(TM) (Infer2) -----
+
+exact_reify test_main                	---> Time: 0.079984 s
+get_samples 10000 main_simple        	---> Time: 0.341841 s
+importance_sample 1000 main_simple  	---> evidence = 0.000212625 | Time: 0.197807 s
+importance_sample 5000 main_simple  	---> evidence = 0.000459675 | Time: 0.996347 s
+importance_sample 10000 main_simple  	---> evidence = 0.000480038 | Time: 1.9966 s
+importance_sample 2000 main_medium  	---> evidence = 0.00036045 | Time: 0.489224 s
+importance_sample 50000 main_large   	---> evidence = 3.888e-07 | Time: 20.1305 s
+
+----- MakeRef1(TM) (Infer2A) -----
+
+exact_reify test_main                	---> Time: 0.078561 s
+get_samples 10000 main_simple        	---> Time: 0.336893 s
+importance_sample 1000 main_simple  	---> evidence = 0.000212625 | Time: 0.201253 s
+importance_sample 5000 main_simple  	---> evidence = 0.000459675 | Time: 0.997996 s
+importance_sample 10000 main_simple  	---> evidence = 0.000480038 | Time: 2.01226 s
+importance_sample 2000 main_medium  	---> evidence = 0.00036045 | Time: 0.488621 s
+importance_sample 50000 main_large   	---> evidence = 3.888e-07 | Time: 20.0768 s
+
+----- ProbTreeRef1 (Infer2) -----
+
+exact_reify test_main                	---> Time: 0.074057 s
+get_samples 10000 main_simple        	---> Time: 0.30236 s
+importance_sample 1000 main_simple  	---> evidence = 0.000212625 | Time: 0.180955 s
+importance_sample 5000 main_simple  	---> evidence = 0.000459675 | Time: 0.89962 s
+importance_sample 10000 main_simple  	---> evidence = 0.000480038 | Time: 1.81227 s
+importance_sample 2000 main_medium  	---> evidence = 0.00036045 | Time: 0.439044 s
+importance_sample 50000 main_large   	---> evidence = 3.888e-07 | Time: 18.1284 s
+
+----- ProbTreeRef1 (Infer2A) -----
+
+exact_reify test_main                	---> Time: 0.074433 s
+get_samples 10000 main_simple        	---> Time: 0.305366 s
+importance_sample 1000 main_simple  	---> evidence = 0.000212625 | Time: 0.18262 s
+importance_sample 5000 main_simple  	---> evidence = 0.000459675 | Time: 0.911646 s
+importance_sample 10000 main_simple  	---> evidence = 0.000480038 | Time: 1.82447 s
+importance_sample 2000 main_medium  	---> evidence = 0.00036045 | Time: 0.452292 s
+importance_sample 50000 main_large   	---> evidence = 3.888e-07 | Time: 18.3769 s
+
+----- MakeRef1(FTM) (InferF) -----
+
+exact_reify test_main                	---> Time: 0.078461 s
+get_samples 10000 main_simple        	---> Time: 0.335336 s
+importance_sample 1000 main_simple  	---> evidence = 0.000212625 | Time: 0.195759 s
+importance_sample 5000 main_simple  	---> evidence = 0.000459675 | Time: 0.987345 s
+importance_sample 10000 main_simple  	---> evidence = 0.000480038 | Time: 1.95975 s
+importance_sample 2000 main_medium  	---> evidence = 0.00036045 | Time: 0.481326 s

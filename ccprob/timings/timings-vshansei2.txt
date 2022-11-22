@@ -1,0 +1,101 @@
+ocamlfind ocamlc -g -package batteries -linkpkg -c -I /Users/samer/src/okmij/caml-shift inference2.ml
+ocamlfind ocamlc -g -package batteries -linkpkg -o hanstest -I /Users/samer/src/okmij/caml-shift -I /Users/samer/src/okmij/hansei -dllpath /Users/samer/src/okmij/caml-shift delimcc.cma prob.cma utils.cmo dist.cmo lazydata.cmo monads.cmo monadreps.cmo store.cmo prob.cmo inference3.cmo notes.cmo inference2.cmo inference1.cmo probimps.cmo hanstest.ml
+./hanstest
+
+----- Hansei (InferH) -----
+
+exact_reify test_main                	---> Time: 0.093406 s
+get_samples'' 10000 main_simple      	---> rejection_sample: done 10000 worlds
+Time: 0.374994 s
+importance_sample 1000 main_simple  	---> sample_importance: done 1000 worlds
+evidence = 0.000242757 | Time: 0.128725 s
+importance_sample 5000 main_simple  	---> sample_importance: done 5000 worlds
+evidence = 0.00032967 | Time: 0.536576 s
+importance_sample 10000 main_simple  	---> sample_importance: done 10000 worlds
+evidence = 0.000442599 | Time: 1.15768 s
+importance_sample 2000 main_medium  	---> sample_importance: done 2000 worlds
+evidence = 0.000119755 | Time: 0.329598 s
+importance_sample 50000 main_large   	---> sample_importance: done 50000 worlds
+evidence = 1.15085e-07 | Time: 11.8774 s
+
+----- MakeST(VCM) (InferH) -----
+
+exact_reify test_main                	---> Time: 0.135124 s
+get_samples'' 10000 main_simple      	---> rejection_sample: done 10000 worlds
+Time: 1.40222 s
+importance_sample 1000 main_simple  	---> sample_importance: done 1000 worlds
+evidence = 0.000242757 | Time: 0.670101 s
+importance_sample 5000 main_simple  	---> sample_importance: done 5000 worlds
+evidence = 0.00032967 | Time: 3.24467 s
+importance_sample 10000 main_simple  	---> sample_importance: done 10000 worlds
+evidence = 0.000442599 | Time: 6.50233 s
+importance_sample 2000 main_medium  	---> sample_importance: done 2000 worlds
+evidence = 0.000119755 | Time: 1.69987 s
+importance_sample 50000 main_large   	---> sample_importance: done 50000 worlds
+evidence = 1.15085e-07 | Time: 91.3424 s
+
+----- MakeRef1(VCM) (InferH) -----
+
+exact_reify test_main                	---> Time: 0.078675 s
+get_samples'' 10000 main_simple      	---> rejection_sample: done 10000 worlds
+Time: 0.802896 s
+importance_sample 1000 main_simple  	---> sample_importance: done 1000 worlds
+evidence = 0.000242757 | Time: 0.295661 s
+importance_sample 5000 main_simple  	---> sample_importance: done 5000 worlds
+evidence = 0.00032967 | Time: 1.4407 s
+importance_sample 10000 main_simple  	---> sample_importance: done 10000 worlds
+evidence = 0.000442599 | Time: 2.89605 s
+importance_sample 2000 main_medium  	---> sample_importance: done 2000 worlds
+evidence = 0.000119755 | Time: 0.756654 s
+importance_sample 50000 main_large   	---> sample_importance: done 50000 worlds
+evidence = 1.15085e-07 | Time: 37.6768 s
+
+----- MakeST(TM) (Infer2) -----
+
+exact_reify test_main                	---> Time: 0.140494 s
+get_samples'' 10000 main_simple      	---> Time: 0.582914 s
+importance_sample 1000 main_simple  	---> evidence = 0.00072585 | Time: 0.325305 s
+importance_sample 5000 main_simple  	---> evidence = 0.000491681 | Time: 1.67968 s
+importance_sample 10000 main_simple  	---> evidence = 0.000325311 | Time: 3.36429 s
+importance_sample 2000 main_medium  	---> evidence = 0.000181406 | Time: 0.81479 s
+importance_sample 50000 main_large   	---> evidence = 5.13216e-07 | Time: 36.1778 s
+
+----- MakeRef1(TM) (Infer2) -----
+
+exact_reify test_main                	---> Time: 0.08035 s
+get_samples'' 10000 main_simple      	---> Time: 0.379685 s
+importance_sample 1000 main_simple  	---> evidence = 0.00072585 | Time: 0.211331 s
+importance_sample 5000 main_simple  	---> evidence = 0.000491681 | Time: 1.0823 s
+importance_sample 10000 main_simple  	---> evidence = 0.000325311 | Time: 2.14405 s
+importance_sample 2000 main_medium  	---> evidence = 0.000181406 | Time: 0.524627 s
+importance_sample 50000 main_large   	---> evidence = 5.13216e-07 | Time: 21.1988 s
+
+----- ProbTreeRef1 (Infer2) -----
+
+exact_reify test_main                	---> Time: 0.074982 s
+get_samples'' 10000 main_simple      	---> Time: 0.346467 s
+importance_sample 1000 main_simple  	---> evidence = 0.00072585 | Time: 0.192107 s
+importance_sample 5000 main_simple  	---> evidence = 0.000491681 | Time: 0.980866 s
+importance_sample 10000 main_simple  	---> evidence = 0.000325311 | Time: 1.9445 s
+importance_sample 2000 main_medium  	---> evidence = 0.000181406 | Time: 0.470126 s
+importance_sample 50000 main_large   	---> evidence = 5.13216e-07 | Time: 19.2031 s
+
+----- MakeRef1(VCM) (Infer3) -----
+
+exact_reify test_main                	---> Time: 0.076888 s
+get_samples'' 10000 main_simple      	---> Time: 0.860958 s
+importance_sample 1000 main_simple  	---> evidence = 0.00072585 | Time: 0.483206 s
+importance_sample 5000 main_simple  	---> evidence = 0.000491681 | Time: 2.47667 s
+importance_sample 10000 main_simple  	---> evidence = 0.000325311 | Time: 4.9165 s
+importance_sample 2000 main_medium  	---> evidence = 0.000181406 | Time: 1.24374 s
+importance_sample 50000 main_large   	---> evidence = 5.13216e-07 | Time: 59.6572 s
+
+----- Hansei (Infer3) -----
+
+exact_reify test_main                	---> Time: 0.067959 s
+get_samples'' 10000 main_simple      	---> Time: 0.323801 s
+importance_sample 1000 main_simple  	---> evidence = 0.00111465 | Time: 0.17706 s
+importance_sample 5000 main_simple  	---> evidence = 0.000569441 | Time: 0.901425 s
+importance_sample 10000 main_simple  	---> evidence = 0.000359871 | Time: 1.79017 s
+importance_sample 2000 main_medium  	---> evidence = 0.000181406 | Time: 0.436712 s
+importance_sample 50000 main_large   	---> evidence = 5.13216e-07 | Time: 17.6813 s
