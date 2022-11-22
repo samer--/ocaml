@@ -12,5 +12,9 @@ only when they are needed.
 
 The timings directory contains some timing results.
 
-Now that delimcc is a package installed by opam, some things in the Makefile
-don't work so I need to refresh it to get everything working again.
+Now that delimcc is a package installed by opam, some of the build steps
+in the Makefile aren't working and needs a bit of a refresh.
+
+The included history files contain records of some of my command line
+interactions, so when everything is working again, they will be a usefull
+reminder of how this works in practise.
