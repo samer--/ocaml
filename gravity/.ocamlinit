@@ -1,0 +1,11 @@
+#utop_prompt_simple
+#use "/Users/samer/.ocamlinit"
+#require "graphics"
+#require "lablgtk2"
+#require "cairo2"
+#require "cairo2-gtk"
+
+#load "utils.cmo"
+#load "algebra.cmo"
+#load "symbolic.cmo"
+#load "gtktools.cmo"
