@@ -1,7 +1,7 @@
 # Probabilistic programming using delimited continuations
 
 This directory contains some work I did comparing a few different ways
-of implementing probabilistic programming based on Oleg Kiselyov's
+of implementing probabilistic programming based on the ideas in Oleg Kiselyov's
 Hansei system, which is in turn based on his `delimcc` package providing
 delimited continuations (shift and reset) in OCaml.
 
