@@ -1,6 +1,10 @@
 
 let ( -| ) f g x = f (g x)
+let uncurry f (x,y) = f x y
 let pair x y = (x,y)
+
+(* returns all distinct subsets of two elements as a list of pairs *)
+(* pairs : 'a list -> ('a * 'a) list *)
 let rec pairs = function
 		| [] -> []
 		| x::xs -> (List.map (pair x) xs) @ pairs xs
@@ -19,11 +23,12 @@ let rec unzip3 = function
   | (x,y,z)::xyzs -> let xs, ys, zs = unzip3 xyzs in x::xs, y::ys, z::zs
 
 type ('a, 'b) either = Left of 'a | Right of 'b
+
 let setup_call_cleanup setup cleanup f =
   let x = setup () in
   let y = try Left (f x) with e -> Right e in
   cleanup x;
-  match y with 
+  match y with
     | Left y -> y
     | Right e -> raise e
 
@@ -32,12 +37,12 @@ let get_time = Unix.gettimeofday
 let sleep_until target =
   let rec delay t =
     try ignore (Unix.select [] [] [] t)
-    with Unix.Unix_error(Unix.EINTR, _, _) -> 
+    with Unix.Unix_error(Unix.EINTR, _, _) ->
       let remaining = target -. get_time () in
       if remaining > 0.0 then delay remaining
   in let remaining = target -. get_time () in
-  if remaining > 0.0 then delay remaining 
-  else Printf.printf "! "
+  if remaining > 0.0 then delay remaining
+  (* else Printf.printf "!" *)
 
 let rec list_flip_map = function
   | []    -> fun _ -> []
@@ -49,14 +54,14 @@ let rec list_flip_fold2 f = function
              let fx = f x in
              fun (y::ys) s -> ffxs ys (fx y s)
 
-let rec repeat n thunk = 
+let rec repeat n thunk =
   if n=0 then () else (thunk (); repeat (n-1) thunk)
 
 (* time execution *)
 let timeit n thunk =
   let time_start = Sys.time () in
-  let r = repeat n thunk in
+  let result = repeat n thunk in
   Printf.printf "Time: %g s" (Sys.time () -. time_start);
   print_endline "";
-  r
- 
+  result
+
