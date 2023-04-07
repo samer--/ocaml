@@ -1,5 +1,10 @@
 
 module type FIELD = sig
+  (* A FIELD is a structure that supports two commutative groups,
+     'addition' and 'multplication' over the same type. Hence, both
+     operations have an identity element and inverse operations. In
+     addition multiplication distributes over addition.
+   *)
   type t
 
   val one  : t
@@ -12,32 +17,38 @@ module type FIELD = sig
 end
 
 module type VECTOR = sig
-  type t
-	type s
+  (* A vector space is defined over a FIELD. The vectors form an Abelian
+     group under addition, and scalar multiplication satisfies certain rules.
+     Defined below is actually an inner product space because we include the dot product
+  *)
+  type t (* the type of vectors *)
+	type s (* the type of scalars *)
 
 	module Field: FIELD with type t = s
 
-  val ( *> ) : s -> t -> t
-  val ( <+> ) : t -> t -> t
-  val ( <*> ) : t -> t -> s
+  val ( *> ) : s -> t -> t   (* scalar multiplication *)
+  val ( <+> ) : t -> t -> t  (* vector addition *)
+  val ( <*> ) : t -> t -> s  (* dot product *)
   val negV: t -> t
-  (* val zeroV : t *)
+  (* val zeroV : t *) (* should exist, but I don't need it apparently *)
 end
 
 module Float = struct
+  (* Float is an instance of FIELD *)
   type t = float
   let one = 1.0
   let zero = 0.0
-  let ( * ) =  Pervasives.( *. )
-  let ( + ) =  Pervasives.( +. )
-  let recip x = Pervasives.(1.0 /. x)
-  let neg x = Pervasives.(~-. x)
+  let ( * ) =  Stdlib.( *. )
+  let ( + ) =  Stdlib.( +. )
+  let recip x = Stdlib.(1.0 /. x)
+  let neg x = Stdlib.(~-. x)
   let pow y x = x ** y
 end
 
 module type NAT = sig val n : int end
 
 module type FUNCTOR = sig
+  (* this looks a bit weird - more like Foldable + Applicative/Zip *)
   type 'a t
 
   val map : ('a -> 'b) -> 'a t -> 'b t
@@ -56,6 +67,8 @@ module ListN (N: NAT) = struct
 end
 
 module FunctorVector (A:FUNCTOR) (F:FIELD) = struct
+  (* This is also bit weird - a vector defined as a containerish thing (Functor)
+     of values from a FIELD *)
   type t = F.t A.t
   type s = F.t
 
@@ -64,9 +77,9 @@ module FunctorVector (A:FUNCTOR) (F:FIELD) = struct
 
   let ( *> ) k = A.map (( * ) k)
   let ( <+> ) = A.map2 ( + )
-  let ( <*> ) = A.fold2 (fun s x y -> s + x*y) zero 
+  let ( <*> ) = A.fold2 (fun s x y -> s + x*y) zero
   let negV = A.map neg
-  (* let zeroV = A.fill zero *) 
+  (* let zeroV = A.fill zero *)
 end
 
 module FieldOps (F:FIELD) = struct
