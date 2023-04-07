@@ -33,5 +33,8 @@ gravity: utils.cmo algebra.cmo symbolic.cmo gtktools.cmo gravity.cmo
 gravityo: utils.cmx algebra.cmx symbolic.cmx gtktools.cmx gravity.cmx
 	$(OCAMLOPT) -o gravity utils.cmx algebra.cmx symbolic.cmx gtktools.cmx gravity.cmx
 
-clean::
+clean:
 	  rm -f *.cm[iox] *.[oa] *~ gravity.opt gravity
+
+run: 
+	sleep 1 && ./gravity 2 0.002 0.0001
