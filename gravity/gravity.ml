@@ -34,7 +34,7 @@ module Verlet (V:VECTOR) = struct
 end
 
 module RK (V: VECTOR) = struct
-  (** Runge-Kutta integrator, 4th order 
+  (** Runge-Kutta integrator, 4th order
    *  Works for any vector space.
    *)
   module VO = VectorOps(V)
@@ -59,31 +59,31 @@ end
 
 module Gravity (V: VECTOR) = struct
   (* Gravitational Hamiltonian. Works for any vector space,
-   * including vectors over a symbolic field. Masses is a list 
+   * including vectors over a symbolic field. Masses is a list
    * of scalars, while positions and momenta are lists of vectors.
    *)
 	module VO = VectorOps(V)
   open VO
-  open F
+  open F (* field of vector space *)
   open List
 
   let two = one + one
 	let g = pow (-8.0) two (* arbitrary constant *)
 	let kinetic m p = (p <*> p)/(two*m)
 
-	let grav_pot ((m1,r1), (m2,r2)) = 
+	let grav_pot ((m1,r1), (m2,r2)) =
     (* pure gravitational interaction, point masses *)
-		let dr = r2 <-> r1 in 
+		let dr = r2 <-> r1 in
     neg (g*m1*m2/sqrt(dr <*> dr))
 
-	let soft_pot r0 ((m1,r1), (m2,r2)) = 
+	let soft_pot r0 ((m1,r1), (m2,r2)) =
     (* no singularity at zero - quadratic at close range *)
-		let dr = r2 <-> r1 in 
+		let dr = r2 <-> r1 in
     neg (g*m1*m2/sqrt((dr <*> dr) + pow 2.0 (of_float r0)))
 
-	let bouncy_pot r0 ((m1,r1), (m2,r2)) = 
+	let bouncy_pot r0 ((m1,r1), (m2,r2)) =
     (* repulsive at short range *)
-		let dr = r2 <-> r1 in 
+		let dr = r2 <-> r1 in
     let dr2 =dr <*> dr in
     g*m1*m2*(of_float r0 - sqrt(dr2))/dr2
 
@@ -97,10 +97,10 @@ module Sym2D       = FunctorVector (List2) (Sym)
 module GravSym2D   = Gravity (Sym2D)
 
 let system_variables num_dimensions n =
-  let new_vec prefix k = List.map (fun i -> Sym.var (prefix ^ string_of_int k ^ string_of_int i)) 
+  let new_vec prefix k = List.map (fun i -> Sym.var (prefix ^ string_of_int k ^ string_of_int i))
                                   (iota num_dimensions) in
   let new_mass k = Sym.var ("m" ^ string_of_int k) in
-  ( (iota n |> List.map (new_mass)), 
+  ( (iota n |> List.map (new_mass)),
     (iota n |> List.map (new_vec "x")),
     (iota n |> List.map (new_vec "p"))
   )
@@ -112,7 +112,7 @@ let symbolic_system pot n =
   let ham = GravSym2D.(hamiltonian pot ms xs ps) in
   let dHam = Sym.deriv ham in
 
-  let open Agg in 
+  let open Agg in
   let mm = from1d ms in
   let xx, pp = from2d xs, from2d ps in
   let xd, pd = map dHam pp, map (Sym.neg -| dHam) xx in
@@ -122,13 +122,13 @@ let symbolic_system pot n =
 
 
 let system grav_pot bodies =
-  let f, h, (xs, ps, xd, pd) = symbolic_system grav_pot (List.length bodies) in
+  let f, h, _ = symbolic_system grav_pot (List.length bodies) in
   let ms, xs, vs = unzip3 bodies in
   let ps = List.map2 Float2D.( *> ) ms vs in
-  let open Agg in 
+  let open Agg in
   let mvals = from1d ms in
   ((fun state -> h (mvals <> state)),
-   (fun _ state -> f (mvals <> state)), 
+   (fun _ state -> f (mvals <> state)),
    from2d xs <> from2d ps)
 
 module RKAggVec = RK (FunctorVector (Agg) (Float))
@@ -136,63 +136,13 @@ module RKAggVec = RK (FunctorVector (Agg) (Float))
 type shape = Point of (float * float)
            | Disc of int * (float * float)
 
-let render (t0,s0) =
+let render (_t0,s0) =
   let open Agg in
   let render1 (Seq [One x; One y]) = Point (x,y) in
   let Two (Seq pos, _) = s0 in
   List.map render1 pos
 
 let report name x = Printf.printf "\n%s = %f\n" name x; x
-
-module RenderGraphics = struct
-
-  let with_display w h =
-    setup_call_cleanup
-      (fun () -> Graphics.open_graph (Printf.sprintf " %dx%d" w h))
-      (fun _ -> Graphics.close_graph ())
-
-  let displayer scale ox oy =
-    let open Graphics in
-    let int_of_coor x = int_of_float (scale *. x) in
-    let xform x y = ox + int_of_coor x, oy + int_of_coor y in
-    let display1 = function
-      | Point (x,y) -> let i, j = xform x y in plot i j;
-      | Disc  (r,(x,y)) -> let i, j = xform x y in fill_circle i j r;
-    in fun shapes -> 
-      clear_graph (); 
-      List.iter display1 shapes;
-      synchronize ()
-
-  let dloop dt (h,f,s0) =
-    let advance = RKAggVec.rk4 f in
-    let display = displayer 80.0 250 250 in
-    let t_start = get_time () +. 0.5 in
-
-    let rec loop kt dt rt (t0,s0) = 
-      let open Graphics in 
-      let Agg.One energy = h s0 in
-      sleep_until rt; 
-      (t0,s0) |> render |> display;
-      Printf.printf "t=%6.3f, E=%8.7g  \r" t0 energy; flush stdout;
-      if key_pressed () then
-        handle kt dt rt (t0,s0) (read_key ())
-      else
-        loop_adv kt dt rt (t0,s0)
-
-    and loop_adv kt dt rt state = loop kt dt (rt +. kt *. dt) (advance dt state)
-    and handle kt dt rt state = function
-      | 'q' -> ()
-      | '<' -> loop_adv kt (report "dt" (dt/.2.)) rt state
-      | '>' -> loop_adv kt (report "dt" (dt*.2.)) rt state
-      | '[' -> loop_adv (report "kt" (kt/.2.)) dt rt state
-      | ']' -> loop_adv (report "kt" (kt*.2.)) dt rt state
-      | 'r' -> loop kt dt rt (0.0,s0)
-      | _ -> loop_adv kt dt rt state
-
-    in with_display 500 500
-      (fun _ -> Graphics.auto_synchronize false; 
-                loop 1.0 dt t_start (0.0,s0))
-end
 
 module RenderCairo = struct
   let two_pi = 8. *. atan 1.0
@@ -201,55 +151,61 @@ module RenderCairo = struct
                   ; rt: float
                   ; kx: float
                   ; ds: float * 's
-                  ; t_last: float 
+                  ; t_last: float
                   ; stop: bool
                   ; focus: int option
-                  } 
+                  }
 
-  let fill_circle cr (x,y) r =
+  let fill_circle cr ((x,y), r) =
     Cairo.arc cr x y r 0. two_pi;
     Cairo.Path.close cr;
     Cairo.fill cr
 
-  let pixel cr = 
-    let ux, uy = Cairo.device_to_user_distance cr 2. 2. in 
-    max ux uy
 
-  let display1 cr = function
-    | Point pt   -> fill_circle cr pt (pixel cr);
-    | Disc  (r,pt) -> fill_circle cr pt (float r)
+  let display cx cy kx (ox,oy) cr colours shapes =
+    let pixel cr = uncurry max (Cairo.device_to_user_distance cr 2.0 2.0) in
+    let display1 a_pixel (colour, shape) =
+      let (r,g,b) = colour in begin
+        Cairo.set_source_rgb cr r g b;
+        fill_circle cr (match shape with
+          | Point pt   -> (pt, a_pixel);
+          | Disc  (r,pt) -> (pt, float r))
+        end in
 
-  let display cx cy kx (ox,oy) cr shapes =
     Cairo.save cr;
     Cairo.translate cr cx cy;
     Cairo.scale cr kx (~-.kx);
     Cairo.translate cr (~-.ox) (~-.oy);
-    Cairo.set_source_rgb cr 1.0 1.0 1.0;
-    List.iter (display1 cr) shapes;
+    List.iter (display1  (pixel cr)) (List.combine colours shapes);
     Cairo.restore cr
 
-  let position_of_nth s i = 
+  let position_of_nth s i =
     let open Agg in
-    let (Two (Seq pos, _)) = s in 
+    let (Two (Seq pos, _)) = s in
     let (Seq [One x; One y]) = List.nth pos i in
-    (x, y) 
+    (x, y)
 
-  let system (h,f,s0) dt t_start = 
+  let state_machine (h,f,s0) colours dt t_start =
     let advance dt = iterate 10 (RKAggVec.rk4 f (dt/.10.)) in
 
-    let draw width height cr state = 
-      let t0,s0 = state.ds in 
+    let update state =
+      { state with rt = state.rt +. dt;
+                   ds = advance (state.kt *. dt) state.ds} in
+
+    let draw width height cr state =
+      let t0,s0 = state.ds in
       let origin = match state.focus with
         | None -> (0.0,0.0)
         | Some i -> position_of_nth s0 i in
-      state.ds |> render |> display (width/.2.) (height/.2.) state.kx origin cr;
+      state.ds |> render |> display (width/.2.) (height/.2.) state.kx origin cr colours;
+
       let Agg.One energy = h s0 in
-      let t_now = get_time () in 
+      let t_now = get_time () in
       let fps = 1. /. (t_now -. state.t_last) in
       let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%5.1f  \r" t0 energy fps in
-      Cairo.set_source_rgb cr 0.9 0.5 0.5;
+      Cairo.set_source_rgb cr 0.9 0.5 0.05;
       Cairo.move_to cr 8. (height -. 8.);
-      Cairo.set_font_size cr 14.;
+      Cairo.set_font_size cr 28.;
       Cairo.show_text cr text;
       { state with rt=state.rt +. dt;
                    ds=advance (state.kt *. dt) state.ds;
@@ -264,7 +220,7 @@ module RenderCairo = struct
       | 'r' -> {s with kt=(report "kt" (~-.(s.kt)))}
       | '-' -> {s with kx=(report "kx" (s.kx/.2.))}
       | '=' -> {s with kx=(report "kx" (s.kx*.2.))}
-      | 'i' -> {s with ds=(0.0,s0)} 
+      | 'i' -> {s with ds=(0.0,s0)}
       | '0' -> {s with focus=None}
       | '1' -> {s with focus=Some 0}
       | '2' -> {s with focus=Some 1}
@@ -272,51 +228,63 @@ module RenderCairo = struct
       | '4' -> {s with focus=Some 3}
     in
 
-    let key_press s ev = 
-      let code, str = GdkEvent.Key.(keyval ev, string ev) in 
-      Printf.printf "keypress %d (%s)\n%!" code str; 
+    let key_press s ev =
+      let code, str = GdkEvent.Key.(keyval ev, string ev) in
+      Printf.printf "keypress %d (%s)\n%!" code str;
       try handle s (Char.chr code), true
       with e -> s, false
 
     in ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); t_last=t_start; stop=false; focus=None},
-         ignore, [ `KEY_PRESS; `KEY_RELEASE ], 
+         ignore, [ `KEY_PRESS; `KEY_RELEASE ],
          draw, [ link (fun cs -> cs#key_press)    key_press ])
-  let stop sref = (!sref).stop 
-  let run dt def = () |> get_time |> ( +. ) 0.5 |> system def dt |> animate_with_loop stop dt
+    (* end of state_machine *)
+  let stop sref = (!sref).stop
+  let run dt colours def = get_time ()  +. 0.5 |> state_machine def colours dt |> animate_with_loop stop dt
 end
 
 (* numeric description *)
-let zeroV = rep 2 0.0 
+let zeroV = rep 2 0.0
 let unitV i = rep (i-1) 0.0 @ [1.0] @ rep (2-i) 0.0
 
-let sun_two_planets = Float2D.[ 500., zeroV         , zeroV
-                              ; 10.  , unitV 1       , 1.0 *> unitV 2
-                              ; 0.1  , negV (unitV 1), (-1.0)*> unitV 2
-                              ]
+let red    = (1.0, 0.5, 0.5)
+let yellow = (1.0, 1.0, 0.5)
+let green  = (0.5, 1.0, 0.5)
+let blue   = (0.5, 0.5, 1.0)
+let white  = (1.0, 1.0, 1.0)
 
-let sun_contra_planets = Float2D.[ 500.0, zeroV          , zeroV
-                                 ; 2.0  , 1.00 *> unitV 1, 1.10 *> unitV 2
-                                 ; 1.0  , (-1.) *> unitV 1, 1.00 *> unitV 2
-                                 ; 1.0  , (-1.5) *> unitV 1, (1.)*> unitV 2
-                                 ]
+let sun_two_planets =
+  Float2D.[ yellow, (500. , zeroV         , zeroV)
+          ; blue,   (10.  , unitV 1       , 1.0 *> unitV 2)
+          ; red,    (0.1  , negV (unitV 1), (-1.0)*> unitV 2)
+          ]
 
-let sun_planet_moons = Float2D.[ 500.0, zeroV          , (-0.02) *> unitV 2
-                               ; 8.0  , 2.00 *> unitV 1, 1.00 *> unitV 2
-                               ; 0.1  , 2.10 *> unitV 1, 1.60 *> unitV 2
-                               ; 0.5  , 2.20 *> unitV 1, 1.40 *> unitV 2
-                               ]
+let sun_contra_planets =
+  Float2D.[ yellow, (500.0, zeroV          , zeroV)
+          ; blue,   (2.0  , 1.00 *> unitV 1, 1.10 *> unitV 2)
+          ; red,    (1.0  , (-1.) *> unitV 1, 1.00 *> unitV 2)
+          ; green,  (1.0  , (-1.5) *> unitV 1, (1.)*> unitV 2)
+          ]
 
-let binary_suns = Float2D.[ 300. ,   0.08  *> unitV 1, (-2.0) *> unitV 2
-                          ; 300. , (-0.08) *> unitV 1, (2.0)   *> unitV 2
-                          ; 10.  , unitV 1       , 1.5 *> unitV 2
-                          ; 0.1  , negV (unitV 1), (-1.5)*> unitV 2
-                          ]
+let sun_planet_moons =
+  Float2D.[ yellow, (500.0, zeroV          , (-0.02) *> unitV 2)
+          ; blue,   (8.0  , 2.00 *> unitV 1, 1.00 *> unitV 2)
+          ; red,    (0.1  , 2.10 *> unitV 1, 1.60 *> unitV 2)
+          ; white,  (0.5  , 2.20 *> unitV 1, 1.40 *> unitV 2)
+          ]
+
+let binary_suns =
+  Float2D.[ yellow, (300. ,   0.08  *> unitV 1, (-2.0) *> unitV 2)
+          ; blue,   (300. , (-0.08) *> unitV 1, (2.0)   *> unitV 2)
+          ; green,  (10.  , unitV 1       , 1.5 *> unitV 2)
+          ; red,    (0.1  , negV (unitV 1), (-1.5)*> unitV 2)
+          ]
 
 let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_suns]
 
-let main args = 
-  RenderCairo.run (float_of_string args.(2)) 
-                  (system (GravSym2D.soft_pot (float_of_string args.(3))) 
-                          ( List.nth systems (int_of_string args.(1))))
+let main args =
+  let colours, bodies = unzip (List.nth systems (int_of_string args.(1))) in
+  RenderCairo.run (float_of_string args.(2)) colours
+                  (system (GravSym2D.soft_pot (float_of_string args.(3)))
+                          bodies)
 
 let _ = if not !Sys.interactive then main Sys.argv else ()
