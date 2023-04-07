@@ -8,9 +8,9 @@ module Sym = struct
                  | Const : 'a -> 'a expr
 
   let next_id = ref 0
-  let var name = 
+  let var name =
     let id = !next_id in
-    next_id := Pervasives.(id+1); Var (id, name)
+    next_id := Stdlib.(id+1); Var (id, name)
 
   let rec simplify = function
     | Add (Const 0.0, b) -> b
@@ -43,7 +43,7 @@ module Sym = struct
 	let neg x      = const (-1.0) * x |> simplify
 	let sqrt x     = pow 0.5 x        |> simplify
 
-  let rec str = 
+  let rec str =
     let paren x = "(" ^ x ^ ")" in
     function
       | Add (a,Mul (Const -1.0, b)) -> str a ^ " - " ^ str b |> paren
@@ -54,8 +54,8 @@ module Sym = struct
       | Const x -> string_of_float x
       | Var (_,n) -> n
 
-  let rec deriv x y = 
-    if x=y then one 
+  let rec deriv x y =
+    if x=y then one
     else match x with
       | Add (a,b) -> deriv a y + deriv b y
       | Mul (a,b) -> deriv a y * b + a * deriv b y
@@ -66,11 +66,11 @@ module Sym = struct
   (* Allows Sym to be used as a FIELD *)
   type t = float expr
 end
-	
+
 
 module Agg = struct
   (* Aggregation of things *)
-  type 'a t = | Seq : 'a t list -> 'a t 
+  type 'a t = | Seq : 'a t list -> 'a t
               | Two : 'a t * 'a t -> 'a t
               | One : 'a -> 'a t
 
@@ -80,7 +80,7 @@ module Agg = struct
   let from1d xx = xx |> List.map one |> seq
   let from2d xxx = xxx |> List.map from1d |> seq
 
-  let rec map f = function 
+  let rec map f = function
     | One x       -> One (f x)
     | Two (x1,x2) -> Two (map f x1, map f x2)
     | Seq xs      -> Seq (List.map (map f) xs)
@@ -95,17 +95,17 @@ module Agg = struct
     | Two (x1,x2), Two (y1,y2) -> fold2 f (fold2 f s x1 y1) x2 y2
     | Seq xs,      Seq ys      -> List.fold_left2 (fold2 f) s xs ys
 
-  let rec flip_map = function 
+  let rec flip_map = function
     | One x       -> fun f -> One (f x)
-    | Two (x1,x2) -> let fm1, fm2 = flip_map x1, flip_map x2 in 
+    | Two (x1,x2) -> let fm1, fm2 = flip_map x1, flip_map x2 in
                      fun f -> Two (fm1 f, fm2 f)
-    | Seq xs      -> let fmx = list_flip_map (List.map flip_map xs) in 
+    | Seq xs      -> let fmx = list_flip_map (List.map flip_map xs) in
                      fun f -> Seq (fmx (apply_to f))
 
   let rec papp_fold2 f = function
     | One x        -> fun (One y) s -> f x y s
-    | Two (x1,x2)  -> let ff1 = papp_fold2 f x1 in 
-                      let ff2 = papp_fold2 f x2 in 
+    | Two (x1,x2)  -> let ff1 = papp_fold2 f x1 in
+                      let ff2 = papp_fold2 f x2 in
                       fun (Two (y1,y2)) s -> ff2 y2 (ff1 y1 s)
     | Seq xs       -> let ff = list_flip_fold2 (papp_fold2 f) xs in
                       fun (Seq ys) s -> ff ys s
@@ -117,15 +117,15 @@ module IntMap = Map.Make(struct type t = int
                                 let compare = compare end)
 
 (* These lambdas could be parameterised over two functors
- * for the expression and the formal/given arguments 
+ * for the expression and the formal/given arguments
  *)
 let lambda aa expr xx  =
-  let open Sym in 
+  let open Sym in
   let add env (Var (i,_)) y = IntMap.add i y env in
   let env = Agg.fold2 add IntMap.empty aa xx in
   let rec eval = function
     | Add (a,b) -> eval a +. eval b
-    | Mul (a,b) -> eval a *. eval b 
+    | Mul (a,b) -> eval a *. eval b
     | Pow (n,x) -> eval x ** n
     | Var (i,_) -> IntMap.find i env
     | Const x   -> x
@@ -135,7 +135,7 @@ let lambda2 aa expr =
   (* uses partially applied maps and folds to 'compile' all
    * the pattern matching away once first two arguments are
    * given. Not clear if its any faster *)
-  let open Sym in 
+  let open Sym in
   let rec eval = function
     | Add (a,b) -> let ea, eb = eval a, eval b in fun env -> ea env +. eb env
     | Mul (a,b) -> let ea, eb = eval a, eval b in fun env -> ea env *. eb env
@@ -143,6 +143,6 @@ let lambda2 aa expr =
     | Var (i,_) -> IntMap.find i
     | Const x   -> fun _ -> x in
   let add (Var (i,_)) = IntMap.add i in
-  let map_over_evals = Agg.flip_map (Agg.map eval expr) in 
+  let map_over_evals = Agg.flip_map (Agg.map eval expr) in
   let env_builder = Agg.papp_fold2 add aa in
   fun xx -> map_over_evals (apply_to (env_builder xx IntMap.empty))
