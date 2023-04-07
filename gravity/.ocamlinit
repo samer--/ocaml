@@ -9,3 +9,4 @@
 #load "algebra.cmo"
 #load "symbolic.cmo"
 #load "gtktools.cmo"
+#use "gravity.ml"
