@@ -1,0 +1,27 @@
+(lang dune 3.7)
+
+(name gravity)
+
+(generate_opam_files true)
+
+(source
+ (github samer--/ocaml))
+
+(authors "Samer Abdallah")
+
+(maintainers "Samer Abdallah")
+
+(license LICENSE)
+
+(documentation https://url/to/documentation)
+
+(package
+ (name gravity)
+ (synopsis "Gravity simulator")
+ (description "Gravity simulator with equations of motion derived by differentiation of Hamiltonian.")
+ (depends ocaml dune)
+ (allow_empty)
+ (tags
+  (topics "to describe" your project)))
+
+; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
