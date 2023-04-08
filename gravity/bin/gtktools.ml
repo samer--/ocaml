@@ -28,7 +28,7 @@ let with_system (system: 's system) action =
       in ignore (s ~callback) in
 
   let expose state ev =
-    let {Gtk.width=width; Gtk.height=height } = area#misc#allocation in
+    let {Gtk.width=width; Gtk.height=height; _} = area#misc#allocation in
     let cr = Cairo_gtk.create area#misc#window in
     Cairo.set_source_rgb cr 0. 0. 0.;
     Cairo.paint cr;
