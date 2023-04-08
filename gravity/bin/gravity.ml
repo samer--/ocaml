@@ -133,19 +133,10 @@ let system grav_pot bodies =
 
 module RKAggVec = RK (FunctorVector (Agg) (Float))
 
-type shape = Point of (float * float)
-           | Disc of int * (float * float)
-
-let render (_t0,s0) =
-  let open Agg in
-  let render1 (Seq [One x; One y]) = Point (x,y) in
-  let Two (Seq pos, _) = s0 in
-  List.map render1 pos
-
-let report name x = Printf.printf "\n%s = %f\n" name x; x
-
 module RenderCairo = struct
   let two_pi = 8. *. atan 1.0
+  let report name x = Printf.printf "\n%s = %f\n" name x; x
+
   type 's state = { kt: float
                   ; dt: float
                   ; rt: float
@@ -155,6 +146,15 @@ module RenderCairo = struct
                   ; stop: bool
                   ; focus: int option
                   }
+
+  type shape = Point of (float * float)
+             | Disc of int * (float * float)
+
+  let render (_t0,s0) =
+    let open Agg in
+    let render1 (Seq [One x; One y]) = Point (x,y) in
+    let Two (Seq pos, _) = s0 in
+    List.map render1 pos
 
   let fill_circle cr ((x,y), r) =
     Cairo.arc cr x y r 0. two_pi;
