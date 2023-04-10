@@ -188,10 +188,6 @@ module RenderCairo = struct
   let state_machine (h,f,s0) colours dt t_start =
     let advance dt = iterate 16 (RKAggVec.rk4 f (dt/.16.0)) in
 
-    let update state =
-      { state with rt = state.rt +. dt;
-                   ds = advance (state.kt *. dt) state.ds} in
-
     let draw width height cr state =
       let t0,s0 = state.ds in
       let origin = match state.focus with
