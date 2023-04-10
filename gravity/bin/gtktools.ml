@@ -41,7 +41,8 @@ let with_system (system: 's system) (action: (unit -> unit) -> 's live_system ->
       sref := state; continue
     in ignore (select_event area#event#connect ~callback) in
 
-  List.iter connect_stateful_handler links;
+  List.iter connect_stateful_handler
+            (link (fun cs -> cs#expose) expose :: links);
   init area;
 
   w#show ();
@@ -61,7 +62,7 @@ let animate_with_timeouts stop_from_state_ref tau system =
 
 let animate_with_loop stop_from_state_ref tau system =
   with_system system (fun _ live_system ->
-    let _, area, sref = live_system in
+    let draw_cr, area, sref = live_system in
     let rec check_pending t =
       if not (Glib.Main.pending ()) then update t
       else if Glib.Main.iteration false && not (stop_from_state_ref sref) then check_pending t
