@@ -163,7 +163,7 @@ module RenderCairo = struct
 
 
   let display cx cy kx (ox,oy) cr colours shapes =
-    let pixel cr = uncurry max (Cairo.device_to_user_distance cr 2.0 2.0) in
+    let pixel cr = uncurry max (Cairo.device_to_user_distance cr 4.0 4.0) in
     let display1 a_pixel (colour, shape) =
       let (r,g,b) = colour in begin
         Cairo.set_source_rgb cr r g b;
