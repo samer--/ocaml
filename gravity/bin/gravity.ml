@@ -157,7 +157,7 @@ module RenderCairo = struct
     List.map render1 pos
 
   let fill_circle cr ((x,y), r) =
-    Cairo.arc cr x y r 0. two_pi;
+    Cairo.arc cr x y ~r ~a1:0. ~a2:two_pi;
     Cairo.Path.close cr;
     Cairo.fill cr
 
@@ -168,15 +168,15 @@ module RenderCairo = struct
       let (r,g,b) = colour in begin
         Cairo.set_source_rgb cr r g b;
         fill_circle cr (match shape with
-          | Point pt   -> (pt, a_pixel);
-          | Disc  (r,pt) -> (pt, float r))
+          | Point pt    -> (pt, a_pixel);
+          | Disc (r,pt) -> (pt, float r))
         end in
 
     Cairo.save cr;
     Cairo.translate cr cx cy;
     Cairo.scale cr kx (~-.kx);
     Cairo.translate cr (~-.ox) (~-.oy);
-    List.iter (display1  (pixel cr)) (List.combine colours shapes);
+    List.iter (display1 (pixel cr)) (List.combine colours shapes);
     Cairo.restore cr
 
   let position_of_nth s i =
@@ -232,7 +232,7 @@ module RenderCairo = struct
       let code, str = GdkEvent.Key.(keyval ev, string ev) in
       Printf.printf "keypress %d (%s)\n%!" code str;
       try handle s (Char.chr code), true
-      with e -> s, false
+      with _e -> s, false
 
     in ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); t_last=t_start; stop=false; focus=None},
          ignore, [ `KEY_PRESS; `KEY_RELEASE ],
