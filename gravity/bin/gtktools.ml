@@ -70,13 +70,7 @@ let animate_with_loop stop_from_state_ref tau system =
       else if Glib.Main.iteration false && not (stop_from_state_ref sref) then check_pending t
       else ()
     and update t =
-      (* let alloc = area#misc#allocation in *)
-      (* let width, height = float alloc.width, float alloc.height in *)
-      (* let cr = Cairo_gtk.create area#misc#window in *)
       sleep_until t;
       area#misc#draw None; (* synchronous paint *)
-      (* Cairo.set_source_rgb cr 0. 0. 0.; *)
-      (* Cairo.paint cr; *)
-      (* sref := draw_cr (width, height) cr !sref; *)
       check_pending (t +. tau)
     in update (get_time ()))
