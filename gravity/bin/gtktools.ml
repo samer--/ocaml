@@ -24,15 +24,15 @@ let with_system (system: 's system) (action: (unit -> unit) -> 's live_system ->
   let initial_state, init, event_masks, draw_cr, links = system in
   let sref = ref initial_state in
 
-  let expose state ev =
-    let {Gtk.width=width; Gtk.height=height; _} = area#misc#allocation in
+  let expose state _ev =
+    let size = (let a = area#misc#allocation in (float a.width, float a.height)) in
     let cr = Cairo_gtk.create area#misc#window in
     Cairo.set_source_rgb cr 0. 0. 0.;
     Cairo.paint cr;
-    draw_cr (float width, float height) cr state, true in
+    draw_cr size cr state, true in
 
   area#misc#set_can_focus true;
-  ignore (w#connect#destroy quit);
+  ignore (w#connect#destroy ~callback:quit);
   ignore (area#event#add event_masks);
 
   let connect_stateful_handler (Link (select_event, handler)) =
@@ -56,7 +56,7 @@ let animate_with_timeouts stop_from_state_ref tau system =
     let animate () =
       if stop_from_state_ref sref then quit ();
       let _ = GtkBase.Widget.queue_draw area#as_widget in true
-    in ignore (Glib.Timeout.add (int_of_float (1000.0 *. tau)) animate);
+    in ignore (Glib.Timeout.add ~ms:(int_of_float (1000.0 *. tau)) ~callback:animate);
     GMain.main ())
 
 let animate_with_loop stop_from_state_ref tau system =
@@ -68,7 +68,7 @@ let animate_with_loop stop_from_state_ref tau system =
       else ()
     and update t =
       let alloc = area#misc#allocation in
-      let width, height = float alloc.Gtk.width, float alloc.Gtk.height in
+      let width, height = float alloc.width, float alloc.height in
       let cr = Cairo_gtk.create area#misc#window in
       sleep_until t;
       Cairo.set_source_rgb cr 0. 0. 0.;
@@ -76,4 +76,3 @@ let animate_with_loop stop_from_state_ref tau system =
       sref := draw_cr (width, height) cr !sref;
       check_pending (t +. tau)
     in update (get_time ()))
-
