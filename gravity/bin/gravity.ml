@@ -135,7 +135,7 @@ module RKAggVec = RK (FunctorVector (Agg) (Float))
 
 module RenderCairo = struct
   let two_pi = 8. *. atan 1.0
-  let report name x = Printf.printf "\n%s = %f\n" name x; x
+  let report name x = Printf.printf "\n%s = %f\n%!" name x; x
 
   type 's state = { kt: float
                   ; dt: float
