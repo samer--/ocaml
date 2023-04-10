@@ -198,7 +198,7 @@ module RenderCairo = struct
       let Agg.One energy = h s0 in
       let t_now = get_time () in
       let fps = 1. /. (t_now -. state.t_last) in
-      let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%5.1f  \r" t0 energy fps in
+      let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%3.0f  \r" t0 energy fps in
       Cairo.set_source_rgb cr 0.9 0.5 0.05;
       Cairo.move_to cr 8. (height -. 8.);
       Cairo.set_font_size cr 28.;

@@ -56,7 +56,9 @@ let animate_with_timeouts stop_from_state_ref tau system =
     let _, area, sref = live_system in
     let animate () =
       if stop_from_state_ref sref then quit ();
-      let _ = GtkBase.Widget.queue_draw area#as_widget in true
+      (* GtkBase.Widget.queue_draw area#as_widget; *)
+      area#misc#draw None; (* synchronous paint *)
+      true
     in ignore (Glib.Timeout.add ~ms:(int_of_float (1000.0 *. tau)) ~callback:animate);
     GMain.main ())
 
