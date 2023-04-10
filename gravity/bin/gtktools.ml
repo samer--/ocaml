@@ -32,6 +32,8 @@ let with_system (system: 's system) (action: (unit -> unit) -> 's live_system ->
     draw_cr size cr state, true in
 
   area#misc#set_can_focus true;
+  area#misc#set_double_buffered true; (* is default anyway *)
+
   ignore (w#connect#destroy ~callback:quit);
   ignore (area#event#add event_masks);
 
@@ -62,18 +64,19 @@ let animate_with_timeouts stop_from_state_ref tau system =
 
 let animate_with_loop stop_from_state_ref tau system =
   with_system system (fun _ live_system ->
-    let draw_cr, area, sref = live_system in
+    let _draw_cr, area, sref = live_system in
     let rec check_pending t =
       if not (Glib.Main.pending ()) then update t
       else if Glib.Main.iteration false && not (stop_from_state_ref sref) then check_pending t
       else ()
     and update t =
-      let alloc = area#misc#allocation in
-      let width, height = float alloc.width, float alloc.height in
-      let cr = Cairo_gtk.create area#misc#window in
+      (* let alloc = area#misc#allocation in *)
+      (* let width, height = float alloc.width, float alloc.height in *)
+      (* let cr = Cairo_gtk.create area#misc#window in *)
       sleep_until t;
-      Cairo.set_source_rgb cr 0. 0. 0.;
-      Cairo.paint cr;
-      sref := draw_cr (width, height) cr !sref;
+      area#misc#draw None; (* synchronous paint *)
+      (* Cairo.set_source_rgb cr 0. 0. 0.; *)
+      (* Cairo.paint cr; *)
+      (* sref := draw_cr (width, height) cr !sref; *)
       check_pending (t +. tau)
     in update (get_time ()))
