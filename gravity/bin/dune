@@ -1,7 +1,7 @@
 (executable
  (public_name gravity)
  (name gravity)
- (libraries cairo2 cairo2-gtk lablgtk2))
+ (libraries base cairo2 cairo2-gtk lablgtk2))
 
 (env
   (dev
