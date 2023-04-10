@@ -186,7 +186,7 @@ module RenderCairo = struct
     (x, y)
 
   let state_machine (h,f,s0) colours dt t_start =
-    let advance dt = iterate 10 (RKAggVec.rk4 f (dt/.10.)) in
+    let advance dt = iterate 16 (RKAggVec.rk4 f (dt/.16.0)) in
 
     let update state =
       { state with rt = state.rt +. dt;
