@@ -267,9 +267,9 @@ let sun_two_planets =
 
 let sun_contra_planets =
   Float2D.[ yellow, (500.0, zeroV          , zeroV)
-          ; blue,   (2.0  , 1.00 *> unit1, 1.10 *> unit2)
-          ; red,    (1.0  , (-1.) *> unit1, 1.00 *> unit2)
-          ; green,  (1.0  , (-1.5) *> unit1, (1.)*> unit2)
+          ; blue,   (20.0  , 1.00 *> unit1, 1.10 *> unit2)
+          ; red,    (10.0  , (-1.) *> unit1, 1.00 *> unit2)
+          ; green,  (10.0  , (-1.5) *> unit1, (1.)*> unit2)
           ]
 
 let sun_planet_moons =
