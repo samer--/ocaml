@@ -204,7 +204,7 @@ module RenderCairo = struct
 
       let Tree.One energy = h s0 in
       let t_now = get_time () in
-      let spf = 0.99 *. state.spf +. 0.01 *. (t_now -. state.t_last) in
+      let spf = 0.98 *. state.spf +. 0.02 *. (t_now -. state.t_last) in
       let fps = 1. /. spf in
       let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%4.0f  \r" t0 energy fps in
       Cairo.set_source_rgb cr 0.9 0.5 0.05;
