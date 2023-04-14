@@ -12,7 +12,6 @@
 open Utils
 open Algebra
 open Symbolic
-open Gtktools
 
 module Verlet (V:VECTOR) = struct
   open V
@@ -238,14 +237,14 @@ module RenderCairo = struct
       let code, str = GdkEvent.Key.(keyval ev, string ev) in
       Printf.printf "keypress %d (%s)\n%!" code str;
       try handle s (Char.chr code), true
-      with IgnoredKey -> s, false
+      with IgnoredKey -> s, false in
 
-    in ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); spf=dt; t_last=t_start; stop=false; focus=None},
-         ignore, [ `KEY_PRESS; `KEY_RELEASE ],
-         draw, [ link (fun cs -> cs#key_press)    key_press ])
+    let stop state = state.stop in
+    ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); spf=dt; t_last=t_start; stop=false; focus=None},
+       dt, stop, draw, [ `KEY_PRESS; `KEY_RELEASE ], [ Gtktools.link (fun cs -> cs#key_press) key_press ])
     (* end of state_machine *)
   let stop sref = (!sref).stop
-  let run dt colours def = get_time ()  +. 0.5 |> state_machine def colours dt |> animate_with_loop stop dt
+  let gtk_system dt colours def = get_time ()  +. 0.5 |> state_machine def colours dt
 end
 
 (* numeric description *)
@@ -302,6 +301,8 @@ let main args =
     let run () = offline_run (int_of_string args.(4)) sys (float_of_string args.(2)) in
     Bench.bench [Bench.Test.create ~name: ("system " ^ args.(1)) run]
   else
-    RenderCairo.run (float_of_string args.(2)) colours sys
+    let open Gtktools in
+    with_system setup_pixmap_backing animate_with_loop
+                (RenderCairo.gtk_system (float_of_string args.(2)) colours sys)
 
 let _ = if not !Sys.interactive then main Sys.argv else ()
