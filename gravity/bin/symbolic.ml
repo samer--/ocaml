@@ -25,7 +25,7 @@ module Sym = struct
     | Mul (Const a, Mul (Const b, x)) -> Mul (Const (a *. b), x) |> simplify
     | Mul (Mul (Const b, x), Const a) -> Mul (Const (a *. b), x) |> simplify
     | Mul (a, b) when a=b -> Pow (2.0, a) |> simplify
-    | Pow (n, Pow (m, x)) -> Pow (n *. m, x)
+    | Pow (n, Pow (m, x)) -> Pow (n *. m, x) |> simplify
     | Pow (_, Const 0.0) -> Const 0.0
     | Pow (_, Const 1.0) -> Const 1.0
     | Pow (0.0, _) -> Const 1.0
@@ -39,9 +39,8 @@ module Sym = struct
   let ( + ) x y  = Add (x,y) |> simplify
   let ( * ) x y  = Mul (x,y) |> simplify
   let pow y x    = Pow (y,x) |> simplify
-  let recip x    = pow (-1.0) x |> simplify
+  let recip x    = pow (-1.0) x
 	let neg x      = const (-1.0) * x |> simplify
-	let sqrt x     = pow 0.5 x        |> simplify
 
   let rec str =
     let paren x = "(" ^ x ^ ")" in
