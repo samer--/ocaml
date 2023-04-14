@@ -285,10 +285,20 @@ let binary_suns =
 
 let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_suns]
 
+let offline_run num_iter (h,f,s0) dt =
+  let advance s =
+    let Tree.One energy = h (snd s) in
+    iterate 16 (RKAggVec.step f (dt/.16.0)) s in
+  ignore (iterate num_iter advance (0.0, s0))
+
 let main args =
   let colours, bodies = unzip (List.nth systems (int_of_string args.(1))) in
-  RenderCairo.run (float_of_string args.(2)) colours
-                  (system (GravSym2D.soft_pot (float_of_string args.(3)))
-                          bodies)
+  let sys = system (GravSym2D.soft_pot (float_of_string args.(3))) bodies in
+  if Array.length args > 4 then
+    let open Core_bench in
+    let run () = offline_run (int_of_string args.(4)) sys (float_of_string args.(2)) in
+    Bench.bench [Bench.Test.create ~name: ("system " ^ args.(1)) run]
+  else
+    RenderCairo.run (float_of_string args.(2)) colours sys
 
 let _ = if not !Sys.interactive then main Sys.argv else ()
