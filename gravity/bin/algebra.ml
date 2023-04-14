@@ -14,6 +14,7 @@ module type FIELD = sig
 	val recip : t -> t
   val neg : t -> t
   val pow : float -> t -> t
+  val of_float : float -> t
 end
 
 module type VECTOR = sig
@@ -43,6 +44,7 @@ module Float = struct
   let recip x = Stdlib.(1.0 /. x)
   let neg x = Stdlib.(~-. x)
   let pow y x = x ** y
+  let of_float x = x
 end
 
 module type NAT = sig val n : int end
@@ -88,7 +90,6 @@ module FieldOps (F:FIELD) = struct
 	let ( - ) x y = x + neg y
   let sqrt = pow 0.5
 	let sum xs = List.fold_left ( + ) zero xs
-  let of_float k = pow (log k /. log 2.0) (one + one)
 end
 
 module VectorOps (V:VECTOR) = struct

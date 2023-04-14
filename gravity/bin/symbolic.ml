@@ -41,6 +41,7 @@ module Sym = struct
   let pow y x    = Pow (y,x) |> simplify
   let recip x    = pow (-1.0) x
 	let neg x      = const (-1.0) * x |> simplify
+  let of_float x = Const x
 
   let rec str =
     let paren x = "(" ^ x ^ ")" in
