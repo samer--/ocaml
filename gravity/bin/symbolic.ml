@@ -1,11 +1,11 @@
 open Utils
 
 module Sym = struct
-  type 'a expr = | Add : 'a expr * 'a expr -> 'a expr
-                 | Mul : 'a expr * 'a expr -> 'a expr
-                 | Pow : float * float expr -> float expr
-                 | Var : int * string -> 'a expr
-                 | Const : 'a -> 'a expr
+  type term = | Add of term * term
+              | Mul of term * term
+              | Pow of float * term
+              | Var of int * string
+              | Const of float
 
   let next_id = ref 0
   let var name =
