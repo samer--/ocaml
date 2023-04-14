@@ -1,2 +1,7 @@
 (library
- (name gravity))
+ (name gravity)
+ (libraries base cairo2 cairo2-gtk lablgtk2))
+
+(env
+  (dev
+    (flags (:standard -warn-error -A))))

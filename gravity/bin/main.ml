@@ -9,6 +9,7 @@
 (* type system = body list *)
 (* type body = position * velocity * mass * thrust * visual *)
 
+open Gravity
 open Utils
 open Algebra
 open Symbolic
