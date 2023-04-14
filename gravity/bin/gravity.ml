@@ -149,6 +149,7 @@ module RenderCairo = struct
                   ; kx: float
                   ; ds: float * 's
                   ; t_last: float
+                  ; spf: float
                   ; stop: bool
                   ; focus: int option
                   }
@@ -203,15 +204,17 @@ module RenderCairo = struct
 
       let Tree.One energy = h s0 in
       let t_now = get_time () in
-      let fps = 1. /. (t_now -. state.t_last) in
-      let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%3.0f  \r" t0 energy fps in
+      let spf = 0.99 *. state.spf +. 0.01 *. (t_now -. state.t_last) in
+      let fps = 1. /. spf in
+      let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%4.0f  \r" t0 energy fps in
       Cairo.set_source_rgb cr 0.9 0.5 0.05;
       Cairo.move_to cr 8. (height -. 8.);
       Cairo.set_font_size cr 28.;
       Cairo.show_text cr text;
       { state with rt=state.rt +. dt;
                    ds=advance (state.kt *. dt) state.ds;
-                   t_last=t_now} in
+                   t_last=t_now; spf=spf} in
+
 
     let handle s = function
       | 'q' -> {s with stop=true}
@@ -237,7 +240,7 @@ module RenderCairo = struct
       try handle s (Char.chr code), true
       with IgnoredKey -> s, false
 
-    in ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); t_last=t_start; stop=false; focus=None},
+    in ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); spf=dt; t_last=t_start; stop=false; focus=None},
          ignore, [ `KEY_PRESS; `KEY_RELEASE ],
          draw, [ link (fun cs -> cs#key_press)    key_press ])
     (* end of state_machine *)
