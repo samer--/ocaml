@@ -50,8 +50,8 @@ module RK (V: VECTOR) = struct
 	let two = one + one
 	let six = two + two + two
 
-	let rk4 f h (t, x) =
-		let h2 = h/two in
+	let step f h (t, x) =
+		let h2 = V.Scalar.(h/two) in
     let t_ = t + h2 in
     let t2 = t + h in
 		let k1 = f t x in
@@ -190,7 +190,7 @@ module RenderCairo = struct
     (x, y)
 
   let state_machine (h,f,s0) colours dt t_start =
-    let advance dt = iterate 16 (RKAggVec.rk4 f (dt/.16.0)) in
+    let advance dt = iterate 16 (RKAggVec.step f (dt/.16.0)) in
 
     let draw (width,height) cr state =
       let t0,s0 = state.ds in
