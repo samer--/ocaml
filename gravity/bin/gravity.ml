@@ -15,9 +15,8 @@ open Symbolic
 open Gtktools
 
 module Verlet (V:VECTOR) = struct
-  module VO = VectorOps(V)
-  open VO
-  open F
+  open V
+  open ScalarOps (Scalar)
 
 	let two = one + one
   let velocity_verlet f h (t1, (x1, v1)) =
@@ -45,12 +44,11 @@ module RK (V: VECTOR) = struct
   (** Runge-Kutta integrator, 4th order
    *  Works for any vector space.
    *)
-  module VO = VectorOps(V)
-  open VO
-  open F
+  open V
+  open ScalarOps (Scalar)
 
 	let two = one + one
-	let six = two+two+two
+	let six = two + two + two
 
 	let rk4 f h (t, x) =
 		let h2 = h/two in
@@ -70,9 +68,8 @@ module Gravity (V: VECTOR) = struct
    * including vectors over a symbolic field. Masses is a list
    * of scalars, while positions and momenta are lists of vectors.
    *)
-	module VO = VectorOps(V)
-  open VO
-  open F (* field of vector space *)
+  open VectorOps (V)
+  open ScalarOps (Scalar) (* field of vector space *)
   open List
 
   let two = one + one
@@ -96,50 +93,49 @@ module Gravity (V: VECTOR) = struct
     g*m1*m2*(of_float r0 - sqrt(dr2))/dr2
 
 	let hamiltonian potential masses positions momenta =
+    let sum xs = List.fold_left ( + ) zero xs in
     sum (map potential (pairs (combine masses positions))) + sum (map2 kinetic masses momenta)
 end
 
-module List2       = ListN (struct let n=2 end)
-module Float2D     = FunctorVector (List2) (Float)
-module Sym2D       = FunctorVector (List2) (Sym)
-module GravSym2D   = Gravity (Sym2D)
-
-let system_variables num_dimensions n =
-  let new_vec prefix k = List.map (fun i -> Sym.var (prefix ^ string_of_int k ^ string_of_int i))
-                                  (iota num_dimensions) in
-  let new_mass k = Sym.var ("m" ^ string_of_int k) in
-  ( (iota n |> List.map (new_mass)),
-    (iota n |> List.map (new_vec "x")),
-    (iota n |> List.map (new_vec "p"))
-  )
+module Float2D     = Vector (Pair) (Float)
+module GravSym2D   = Gravity (Vector (Pair) (Sym))
 
 
-(* symbolic system description *)
-let symbolic_system pot n =
-  let ms, xs, ps = system_variables 2 n in
-  let ham = GravSym2D.(hamiltonian pot ms xs ps) in
-  let dHam = Sym.deriv ham in
+let system potential bodies =
+  (* symbolic system description *)
+  let symbolic_system n =
+    let indices = iota n in
+    let kth prefix k = prefix ^ "_" ^ string_of_int k in
+    let ms = List.map (Sym.var -| kth "m") indices in
+    let xs, ps =
+      let new_vec prefix k =
+        let f = Sym.var -| (kth (kth prefix k)) in (f 1, f 2) in
+      ( (List.map (new_vec "x") indices),
+        (List.map (new_vec "p") indices)
+      ) in
 
-  let open Agg in
-  let mm = from1d ms in
-  let xx, pp = from2d xs, from2d ps in
-  let xd, pd = map dHam pp, map (Sym.neg -| dHam) xx in
-  let h = lambda2 (mm <> (xx <> pp)) (One ham) in
-  let f = lambda2 (mm <> (xx <> pp)) (xd <> pd) in
-	f, h, (xs, ps, xd, pd)
+    let ham = GravSym2D.hamiltonian potential ms xs ps in
+    let dHam = Sym.deriv ham in
 
+    let open Tree in
+    let mm = from_scalars ms in
+    let xx, pp = from2d xs, from2d ps in
+    let xd, pd = map dHam pp, map (Sym.neg -| dHam) xx in
+    let h = lambda (mm <> (xx <> pp)) (One ham) in
+    let f = lambda (mm <> (xx <> pp)) (xd <> pd) in
+    f, h, (xs, ps, xd, pd) in
 
-let system grav_pot bodies =
-  let f, h, _ = symbolic_system grav_pot (List.length bodies) in
+  let f, h, _ = symbolic_system (List.length bodies) in
   let ms, xs, vs = unzip3 bodies in
   let ps = List.map2 Float2D.( *> ) ms vs in
-  let open Agg in
-  let mvals = from1d ms in
+  let open Tree in
+  let mvals = from_scalars ms in
   ((fun state -> h (mvals <> state)),
    (fun _ state -> f (mvals <> state)),
    from2d xs <> from2d ps)
 
-module RKAggVec = RK (FunctorVector (Agg) (Float))
+module RKAggVec = RK (Vector (Tree) (Float))
+
 
 module RenderCairo = struct
   let two_pi = 8. *. atan 1.0
@@ -188,7 +184,7 @@ module RenderCairo = struct
     Cairo.restore cr
 
   let position_of_nth s i =
-    let open Agg in
+    let open Tree in
     let (Two (Seq pos, _)) = s in
     let (Seq [One x; One y]) = List.nth pos i in
     (x, y)
@@ -203,7 +199,7 @@ module RenderCairo = struct
         | Some i -> position_of_nth s0 i in
       state.ds |> render |> display (width/.2.) (height/.2.) state.kx origin cr colours;
 
-      let Agg.One energy = h s0 in
+      let Tree.One energy = h s0 in
       let t_now = get_time () in
       let fps = 1. /. (t_now -. state.t_last) in
       let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%3.0f  \r" t0 energy fps in
@@ -247,8 +243,9 @@ module RenderCairo = struct
 end
 
 (* numeric description *)
-let zeroV = rep 2 0.0
-let unitV i = rep (i-1) 0.0 @ [1.0] @ rep (2-i) 0.0
+let zeroV = (0.0,0.0)
+let unit1 = (1.0,0.0)
+let unit2 = (0.0,1.0)
 
 let red    = (1.0, 0.5, 0.5)
 let yellow = (1.0, 1.0, 0.5)
@@ -258,29 +255,29 @@ let white  = (1.0, 1.0, 1.0)
 
 let sun_two_planets =
   Float2D.[ yellow, (500. , zeroV         , zeroV)
-          ; blue,   (10.  , unitV 1       , 1.0 *> unitV 2)
-          ; red,    (0.1  , negV (unitV 1), (-1.0)*> unitV 2)
+          ; blue,   (10.  , unit1       , 1.0 *> unit2)
+          ; red,    (0.1  , negV (unit1), (-1.0)*> unit2)
           ]
 
 let sun_contra_planets =
   Float2D.[ yellow, (500.0, zeroV          , zeroV)
-          ; blue,   (2.0  , 1.00 *> unitV 1, 1.10 *> unitV 2)
-          ; red,    (1.0  , (-1.) *> unitV 1, 1.00 *> unitV 2)
-          ; green,  (1.0  , (-1.5) *> unitV 1, (1.)*> unitV 2)
+          ; blue,   (2.0  , 1.00 *> unit1, 1.10 *> unit2)
+          ; red,    (1.0  , (-1.) *> unit1, 1.00 *> unit2)
+          ; green,  (1.0  , (-1.5) *> unit1, (1.)*> unit2)
           ]
 
 let sun_planet_moons =
-  Float2D.[ yellow, (500.0, zeroV          , (-0.02) *> unitV 2)
-          ; blue,   (8.0  , 2.00 *> unitV 1, 1.00 *> unitV 2)
-          ; red,    (0.1  , 2.10 *> unitV 1, 1.60 *> unitV 2)
-          ; white,  (0.5  , 2.20 *> unitV 1, 1.40 *> unitV 2)
+  Float2D.[ yellow, (500.0, zeroV          , (-0.02) *> unit2)
+          ; blue,   (8.0  , 2.00 *> unit1, 1.00 *> unit2)
+          ; red,    (0.1  , 2.10 *> unit1, 1.60 *> unit2)
+          ; white,  (0.5  , 2.20 *> unit1, 1.40 *> unit2)
           ]
 
 let binary_suns =
-  Float2D.[ yellow, (300. ,   0.08  *> unitV 1, (-2.0) *> unitV 2)
-          ; blue,   (300. , (-0.08) *> unitV 1, (2.0)   *> unitV 2)
-          ; green,  (10.  , unitV 1       , 1.5 *> unitV 2)
-          ; red,    (0.1  , negV (unitV 1), (-1.5)*> unitV 2)
+  Float2D.[ yellow, (300. ,   0.08  *> unit1, (-2.0) *> unit2)
+          ; blue,   (300. , (-0.08) *> unit1, (2.0)   *> unit2)
+          ; green,  (10.  , unit1       , 1.5 *> unit2)
+          ; red,    (0.1  , negV (unit1), (-1.5)*> unit2)
           ]
 
 let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_suns]

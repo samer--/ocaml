@@ -1,9 +1,7 @@
 
-module type FIELD = sig
-  (* A FIELD is a structure that supports two commutative groups,
-     'addition' and 'multplication' over the same type. Hence, both
-     operations have an identity element and inverse operations. In
-     addition multiplication distributes over addition.
+module type SCALAR = sig
+  (* A SCALAR is a field (ie with 'addition' and 'multplication')
+   * and in addition the ability to raise to a float-valued power.
    *)
   type t
 
@@ -17,25 +15,31 @@ module type FIELD = sig
   val of_float : float -> t
 end
 
+module ScalarOps (S:SCALAR) = struct
+	include S
+	let ( / ) x y = x * recip y
+	let ( - ) x y = x + neg y
+  let sqrt = pow 0.5
+end
+
 module type VECTOR = sig
-  (* A vector space is defined over a FIELD. The vectors form an Abelian
+  (* A vector space is defined over a field. The vectors form an Abelian
      group under addition, and scalar multiplication satisfies certain rules.
-     Defined below is actually an inner product space because we include the dot product
+     Defined below is actually an inner product space because we include the dot product.
+     We also require the field to be a SCALAR so we can have powers for differentiation.
   *)
   type t (* the type of vectors *)
-	type s (* the type of scalars *)
 
-	module Field: FIELD with type t = s
+	module Scalar: SCALAR
 
-  val ( *> ) : s -> t -> t   (* scalar multiplication *)
-  val ( <+> ) : t -> t -> t  (* vector addition *)
-  val ( <*> ) : t -> t -> s  (* dot product *)
+  val ( *> ) : Scalar.t -> t -> t   (* scalar multiplication *)
+  val ( <+> ) : t -> t -> t         (* vector addition *)
+  val ( <*> ) : t -> t -> Scalar.t  (* dot product *)
   val negV: t -> t
   (* val zeroV : t *) (* should exist, but I don't need it apparently *)
 end
 
-module Float = struct
-  (* Float is an instance of FIELD *)
+module Float : SCALAR with type t = float = struct
   type t = float
   let one = 1.0
   let zero = 0.0
@@ -47,57 +51,41 @@ module Float = struct
   let of_float x = x
 end
 
-module type NAT = sig val n : int end
-
-module type FUNCTOR = sig
-  (* this looks a bit weird - more like Foldable + Applicative/Zip *)
+module type CONTAINER = sig
+  (* a container that is mappable, zippable and foldable *)
   type 'a t
 
   val map : ('a -> 'b) -> 'a t -> 'b t
   val map2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
-  val fold2 : ('s -> 'a -> 'b -> 's) -> 's -> 'a t -> 'b t -> 's
-  (* val fill : 'a -> 'a t *)
+  val foldl : ('s -> 'a -> 's) -> 's -> 'a t -> 's
 end
 
-module ListN (N: NAT) = struct
-  type 'a t = 'a list
+module Pair = struct
+  type 'a t = 'a * 'a
 
-  (* let fill x = rep N.n x *)
-  let map = List.map
-  let map2 = List.map2
-  let fold2 = List.fold_left2
+  let map f (x,y) = (f x, f y)
+  let map2 f (x1,y1) (x2,y2) = (f x1 x2, f y1 y2)
+  let foldl f s (x1,y1) = f (f s x1) y1
 end
 
-module FunctorVector (A:FUNCTOR) (F:FIELD) = struct
-  (* This is also bit weird - a vector defined as a containerish thing (Functor)
-     of values from a FIELD *)
-  type t = F.t A.t
-  type s = F.t
+module Vector (C:CONTAINER) (S:SCALAR) : VECTOR with module Scalar = S and type t = S.t C.t = struct
+  type t = S.t C.t
 
-  module Field = F
-  open F
+  module Scalar = S
+  open S
+  open Utils
 
-  let ( *> ) k = A.map (( * ) k)
-  let ( <+> ) = A.map2 ( + )
-  let ( <*> ) = A.fold2 (fun s x y -> s + x*y) zero
-  let negV = A.map neg
-  (* let zeroV = A.fill zero *)
-end
+  let ( *> ) k x = C.map (( * ) k) x
 
-module FieldOps (F:FIELD) = struct
-	include F
-	let ( / ) x y = x * recip y
-	let ( - ) x y = x + neg y
-  let sqrt = pow 0.5
-	let sum xs = List.fold_left ( + ) zero xs
+  let negV = C.map neg
+  let ( <+> ) = C.map2 (+)
+  let ( <*> ) x y = C.foldl (+) zero (C.map2 ( * ) x y)
 end
 
 module VectorOps (V:VECTOR) = struct
-  module F = FieldOps(V.Field)
   include V
-  (* include F *)
+  open ScalarOps (Scalar)
 
-  let ( </ ) x y = (F.recip y) *> x
+  let ( </ ) x y = recip y *> x
   let ( <-> ) x y = x <+> negV y
 end
-

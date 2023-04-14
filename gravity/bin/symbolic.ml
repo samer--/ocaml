@@ -68,7 +68,7 @@ module Sym = struct
 end
 
 
-module Agg = struct
+module Tree = struct
   (* Aggregation of things *)
   type 'a t = | Seq : 'a t list -> 'a t
               | Two : 'a t * 'a t -> 'a t
@@ -77,8 +77,8 @@ module Agg = struct
   let seq x = Seq x
   let one x = One x
   let ( <> ) x y = Two (x,y)
-  let from1d xx = xx |> List.map one |> seq
-  let from2d xxx = xxx |> List.map from1d |> seq
+  let from_scalars xx = Seq (List.map one xx)
+  let from2d xxx = Seq (List.map (fun (x,y) -> Seq [one x; one y]) xxx)
 
   let rec map f = function
     | One x       -> One (f x)
@@ -90,10 +90,10 @@ module Agg = struct
     | Two (x1,x2), Two (y1,y2) -> Two (map2 f x1 y1, map2 f x2 y2)
     | Seq xs,      Seq ys      -> Seq (List.map2 (map2 f) xs ys)
 
-  let rec fold2 f s xs ys = match (xs,ys) with
-    | One x,       One y       -> f s x y
-    | Two (x1,x2), Two (y1,y2) -> fold2 f (fold2 f s x1 y1) x2 y2
-    | Seq xs,      Seq ys      -> List.fold_left2 (fold2 f) s xs ys
+  let rec foldl f s xs = match xs with
+    | One x       -> f s x
+    | Two (x1,x2) -> foldl f (foldl f s x1) x2
+    | Seq xs      -> List.fold_left (foldl f) s xs
 
   let rec flip_map = function
     | One x       -> fun f -> One (f x)
@@ -115,33 +115,33 @@ end
 
 module IntMap = Map.Make(Int)
 
+let add_var (Sym.Var (i,_)) = IntMap.add i
+
 (* These lambdas could be parameterised over two functors
  * for the expression and the formal/given arguments
  *)
 let lambda aa expr xx  =
   let open Sym in
-  let add env (Var (i,_)) y = IntMap.add i y env in
-  let env = Agg.fold2 add IntMap.empty aa xx in
+  let env = Tree.foldl (|>) IntMap.empty (Tree.map2 add_var aa xx) in
   let rec eval = function
     | Add (a,b) -> eval a +. eval b
     | Mul (a,b) -> eval a *. eval b
     | Pow (n,x) -> eval x ** n
     | Var (i,_) -> IntMap.find i env
     | Const x   -> x
-  in Agg.map eval expr
+  in Tree.map eval expr
 
-let lambda2 aa expr =
+let lambda2 (aa : Sym.term Tree.t) (expr : Sym.term Tree.t) : (float Tree.t -> float Tree.t) =
   (* uses partially applied maps and folds to 'compile' all
    * the pattern matching away once first two arguments are
    * given. Not clear if its any faster *)
   let open Sym in
-  let rec eval = function
+  let rec eval : (Sym.t -> float IntMap.t -> float) = function
     | Add (a,b) -> let ea, eb = eval a, eval b in fun env -> ea env +. eb env
     | Mul (a,b) -> let ea, eb = eval a, eval b in fun env -> ea env *. eb env
     | Pow (n,x) -> let ex = eval x in fun env -> ex env ** n
     | Var (i,_) -> IntMap.find i
     | Const x   -> fun _ -> x in
-  let add (Var (i,_)) = IntMap.add i in
-  let map_over_evals = Agg.flip_map (Agg.map eval expr) in
-  let env_builder = Agg.papp_fold2 add aa in
+  let map_over_evals = Tree.flip_map (Tree.map eval expr) in
+  let env_builder = Tree.papp_fold2 add_var aa in
   fun xx -> map_over_evals (apply_to (env_builder xx IntMap.empty))
