@@ -1,3 +1,11 @@
+(* TODO
+ * integrators
+ * render to cairo (not gdk), then blit to drawing area
+ * simplify algebra
+ * Add MLI
+ * attitude and thrust
+ *)
+
 (* type system = body list *)
 (* type body = position * velocity * mass * thrust * visual *)
 
