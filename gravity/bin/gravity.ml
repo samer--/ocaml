@@ -291,7 +291,7 @@ let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_sun
 let offline_run num_iter (h,f,s0) dt =
   let advance s =
     let Tree.One energy = h (snd s) in
-    iterate 16 (RKAggVec.step f (dt/.16.0)) s in
+    iterate 32 (RKAggVec.step f (dt/.32.0)) s in
   ignore (iterate num_iter advance (0.0, s0))
 
 let main args =
