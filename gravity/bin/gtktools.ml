@@ -74,3 +74,15 @@ let animate_with_loop stop_from_state_ref tau =
       area#misc#draw None; (* synchronous paint *)
       check_pending (t +. tau)
     in update (get_time ()))
+
+let animate_with_loop_max stop_from_state_ref tau =
+  with_system (fun _ live_system ->
+    let _draw_cr, area, sref = live_system in
+    let rec check_pending t =
+      if not (Glib.Main.pending ()) then update t
+      else if Glib.Main.iteration false && not (stop_from_state_ref sref) then check_pending t
+      else ()
+    and update t =
+      area#misc#draw None; (* synchronous paint *)
+      check_pending (t +. tau)
+    in update (get_time ()))
