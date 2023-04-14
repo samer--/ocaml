@@ -155,7 +155,7 @@ module RenderCairo = struct
              | Disc of int * (float * float)
 
   let render (_t0,s0) =
-    let open Agg in
+    let open Tree in
     let render1 (Seq [One x; One y]) = Point (x,y) in
     let Two (Seq pos, _) = s0 in
     List.map render1 pos
