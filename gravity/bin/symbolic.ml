@@ -112,8 +112,7 @@ end
 
 (* ---- lambda and evaluator --- *)
 
-module IntMap = Map.Make(struct type t = int
-                                let compare = compare end)
+module IntMap = Map.Make(Int)
 
 (* These lambdas could be parameterised over two functors
  * for the expression and the formal/given arguments
