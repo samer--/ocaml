@@ -141,6 +141,8 @@ module RenderCairo = struct
   let two_pi = 8. *. atan 1.0
   let report name x = Printf.printf "\n%s = %f\n%!" name x; x
 
+  exception IgnoredKey
+
   type 's state = { kt: float
                   ; dt: float
                   ; rt: float
@@ -226,13 +228,14 @@ module RenderCairo = struct
       | '2' -> {s with focus=Some 1}
       | '3' -> {s with focus=Some 2}
       | '4' -> {s with focus=Some 3}
+      | _   -> raise IgnoredKey
     in
 
     let key_press s ev =
       let code, str = GdkEvent.Key.(keyval ev, string ev) in
       Printf.printf "keypress %d (%s)\n%!" code str;
       try handle s (Char.chr code), true
-      with _e -> s, false
+      with IgnoredKey -> s, false
 
     in ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); t_last=t_start; stop=false; focus=None},
          ignore, [ `KEY_PRESS; `KEY_RELEASE ],
