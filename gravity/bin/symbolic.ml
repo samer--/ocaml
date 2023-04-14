@@ -63,8 +63,8 @@ module Sym = struct
       | Const _   -> zero
       | Var _ -> zero
 
-  (* Allows Sym to be used as a FIELD *)
-  type t = float expr
+  (* Allows Sym to be used as a SCALAR *)
+  type t = term
 end
 
 
