@@ -15,7 +15,7 @@ type 's system = 's * (GMisc.drawing_area -> unit)
 
 type 's live_system = 's painter * GMisc.drawing_area * 's ref
 
-let with_system (system: 's system) (action: (unit -> unit) -> 's live_system -> unit) =
+let with_system (action: (unit -> unit) -> 's live_system -> unit) (system: 's system) =
   let _ = GtkMain.Main.init () in
   let w = GWindow.window ~title:"Test" ~width:400 ~height:400
                          ~allow_grow:true ~allow_shrink:true () in
@@ -51,8 +51,8 @@ let with_system (system: 's system) (action: (unit -> unit) -> 's live_system ->
     ~f: (fun () -> action GMain.quit (draw_cr, area, sref))
     ~finally: w#destroy
 
-let animate_with_timeouts stop_from_state_ref tau system =
-  with_system system (fun quit live_system ->
+let animate_with_timeouts stop_from_state_ref tau =
+  with_system (fun quit live_system ->
     let _, area, sref = live_system in
     let animate () =
       if stop_from_state_ref sref then quit ();
@@ -62,8 +62,8 @@ let animate_with_timeouts stop_from_state_ref tau system =
     in ignore (Glib.Timeout.add ~ms:(int_of_float (1000.0 *. tau)) ~callback:animate);
     GMain.main ())
 
-let animate_with_loop stop_from_state_ref tau system =
-  with_system system (fun _ live_system ->
+let animate_with_loop stop_from_state_ref tau =
+  with_system (fun _ live_system ->
     let _draw_cr, area, sref = live_system in
     let rec check_pending t =
       if not (Glib.Main.pending ()) then update t
