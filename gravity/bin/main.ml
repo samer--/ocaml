@@ -57,11 +57,12 @@ let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_sun
 let main args =
   let open Utils in
 
-  let colours, bodies    = unzip (List.nth systems (int_of_string args.(1))) in
-  let s0, energy_of_state, advance = system (float_of_string args.(3)) bodies in
+  let colours, bodies = unzip (List.nth systems (int_of_string args.(1))) in
+  let sys = Gravity.system (float_of_string args.(3)) bodies in
 
   if Array.length args > 4 then
     let open Core_bench in
+    let energy_of_state, advance, s0 = sys in
     let offline_run num_iter dt =
       let advance' s =
         ignore (energy_of_state (snd s));
@@ -72,7 +73,6 @@ let main args =
     Bench.bench [Bench.Test.create ~name: ("system " ^ args.(1)) run]
   else
     let open Gtktools in
-    let sys = (energy_of_state, advance, s0) in
     with_system setup_pixmap_backing animate_with_loop
                 (Nbodysim.gtk_system (float_of_string args.(2)) colours sys)
 

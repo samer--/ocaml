@@ -100,7 +100,7 @@ let system (softness: float) bodies =
 
     let qq, pp = Tree.of_pairs qs, Tree.of_pairs ps in
     let qd, pd = Tree.map dHam pp, Tree.map dHam qq in
-    let coors = Tree.Two (qq, pp) in
+    let coors  = Tree.Two (qq, pp) in
     let h    = lambda coors (Tree.One ham) in
     let dhdq = lambda coors qd in
     let dhdp = lambda coors pd in
@@ -111,7 +111,7 @@ let system (softness: float) bodies =
   let tree_of_list_pair (q,p) = Tree.(Two (of_pairs q, of_pairs p)) in
   let dhdq = pairlist_of_tree % dhdq' % tree_of_list_pair in
   let dhdp = pairlist_of_tree % dhdp' % tree_of_list_pair in
-  ( (xs, List.map2 Float2D.( *> ) ms vs) (* initial state *)
-  , Tree.(un_one % h % tree_of_list_pair)      (* energy_of_state *)
-  , (fun dt -> iterate 16 (Integrator.step dhdq dhdp (dt/.16.0)))
+  ( Tree.(un_one % h % tree_of_list_pair)      (* energy_of_state *)
+  , (fun dt -> iterate 32 (Integrator.step dhdq dhdp (dt/.32.0)))
+  , (xs, List.map2 Float2D.( *> ) ms vs)       (* initial state *)
   )
