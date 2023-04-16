@@ -1,10 +1,13 @@
 open Algebra
 
-module type HAMILTONIAN_INTEGRATOR = sig
-  module V : VECTOR (* the type of position and momentum vectors *)
+module VecTypes (V: VECTOR) = struct
   type c = V.t * V.t
   type s = V.Scalar.t
+end
 
+module type HAMILTONIAN_INTEGRATOR = sig
+  module V : VECTOR (* the type of position and momentum vectors *)
+  open VecTypes (V)
   val step : (c -> V.t) -> (c -> V.t) -> s -> s*c -> s*c
 end
 
@@ -33,8 +36,6 @@ module HamiltonianRungeKutta (V: VECTOR with module Scalar = Float)
   : HAMILTONIAN_INTEGRATOR with module V = V = struct
   module V = V
   module RK = RungeKutta (VSum (V) (V))
-  type c = V.t * V.t
-  type s = float
 
   let step dHdp dHdq dt (t,x) =
     let f _ x = (dHdp x, V.negV (dHdq x)) in
