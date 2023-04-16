@@ -78,8 +78,6 @@ module Gravity (V: VECTOR) = struct
     sum (map potential (pairs (combine masses positions))) + sum (map2 kinetic masses momenta)
 end
 
-module Float2D   = Vec2D (Float)
-
 let system (softness: float) bodies =
   let module ListFloat2D = VList (Float2D) in
   let module Integrator = Integrators.HamiltonianRungeKutta (ListFloat2D) in

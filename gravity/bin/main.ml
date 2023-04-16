@@ -10,7 +10,7 @@
 (* type body = position * velocity * mass * thrust * visual *)
 
 open Gravlib
-open Gravity
+open Algebra
 
 
 (* numeric description *)

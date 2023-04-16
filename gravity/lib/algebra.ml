@@ -88,6 +88,8 @@ module Vec2D (S:SCALAR) : VECTOR with module Scalar = S and type t = S.t * S.t =
   let negV (x,y) = (neg x, neg y)
 end
 
+module Float2D   = Vec2D (Float)
+
 module VectorOps (V:VECTOR) = struct
   include V
   open ScalarOps (Scalar)
