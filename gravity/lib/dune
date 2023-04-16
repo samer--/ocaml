@@ -1,5 +1,5 @@
 (library
- (name gravity)
+ (name gravlib)
  (libraries base cairo2 cairo2-gtk lablgtk2))
 
 (env

@@ -70,78 +70,51 @@ end
 
 module Tree = struct
   (* Aggregation of things *)
-  type 'a t = | Seq : 'a t list -> 'a t
-              | Two : 'a t * 'a t -> 'a t
-              | One : 'a -> 'a t
+  type ('a,'b) t = | Seq : ('a,'b) t list -> ('a,'b list) t
+                   | Two : ('a,'b) t * ('a,'c) t -> ('a,'b*'c) t
+                   | One : 'a -> ('a,unit) t
 
   let seq x = Seq x
   let one x = One x
-  let ( <> ) x y = Two (x,y)
-  let from_scalars xx = Seq (List.map one xx)
-  let from2d xxx = Seq (List.map (fun (x,y) -> Seq [one x; one y]) xxx)
+  let of_scalars xx = Seq (List.map one xx)
+  let of_pair (x,y) = Two (One x,One y)
+  let of_pairs pairs = Seq (List.map of_pair pairs)
+  let pair_of_two (Two (One x, One y)) = (x,y)
+  let list_of_seq (Seq xs) = xs
+  let un_one (One x) = x
 
-  let rec map f = function
-    | One x       -> One (f x)
-    | Two (x1,x2) -> Two (map f x1, map f x2)
-    | Seq xs      -> Seq (List.map (map f) xs)
+  let rec map: type e. ('a -> 'b) -> ('a,e) t -> ('b,e) t =
+    fun f -> function
+      | One x       -> One (f x)
+      | Two (x1,x2) -> Two (map f x1, map f x2)
+      | Seq xs      -> Seq (List.map (map f) xs)
 
-  let rec map2 f xs ys = match (xs,ys) with
-    | One x,       One y       -> One (f x y)
-    | Two (x1,x2), Two (y1,y2) -> Two (map2 f x1 y1, map2 f x2 y2)
-    | Seq xs,      Seq ys      -> Seq (List.map2 (map2 f) xs ys)
+  let rec map2: type e. ('a -> 'b -> 'c) -> ('a,e) t -> ('b,e) t -> ('c,e) t =
+    fun f xs ys -> match (xs,ys) with
+      | One x,       One y       -> One (f x y)
+      | Two (x1,x2), Two (y1,y2) -> Two (map2 f x1 y1, map2 f x2 y2)
+      | Seq xs,      Seq ys      -> Seq (List.map2 (map2 f) xs ys)
 
-  let rec foldl f s xs = match xs with
-    | One x       -> f s x
-    | Two (x1,x2) -> foldl f (foldl f s x1) x2
-    | Seq xs      -> List.fold_left (foldl f) s xs
+  let rec foldl: type e. ('b -> 'a -> 'b) -> 'b -> ('a,e) t -> 'b =
+    fun f s -> function
+      | One x       -> f s x
+      | Two (x1,x2) -> foldl f (foldl f s x1) x2
+      | Seq xs      -> List.fold_left (foldl f) s xs
 
-  let rec flip_map = function
-    | One x       -> fun f -> One (f x)
-    | Two (x1,x2) -> let fm1, fm2 = flip_map x1, flip_map x2 in
-                     fun f -> Two (fm1 f, fm2 f)
-    | Seq xs      -> let fmx = list_flip_map (List.map flip_map xs) in
-                     fun f -> Seq (fmx (apply_to f))
+  let rec flip_map: type e. ('a,e) t -> ('a -> 'b) -> ('b,e) t =
+    function
+      | One x       -> fun f -> One (f x)
+      | Two (x1,x2) -> let fm1, fm2 = flip_map x1, flip_map x2 in
+                       fun f -> Two (fm1 f, fm2 f)
+      | Seq xs      -> let fmx = list_flip_map (List.map flip_map xs) in
+                       fun f -> Seq (fmx (apply_to f))
 
-  let rec papp_fold2 f = function
-    | One x        -> fun (One y) s -> f x y s
-    | Two (x1,x2)  -> let ff1 = papp_fold2 f x1 in
-                      let ff2 = papp_fold2 f x2 in
-                      fun (Two (y1,y2)) s -> ff2 y2 (ff1 y1 s)
-    | Seq xs       -> let ff = list_flip_fold2 (papp_fold2 f) xs in
-                      fun (Seq ys) s -> ff ys s
+  let rec papp_fold2: type e. ('a -> 'b -> 'c -> 'c) -> ('a,e) t -> ('b,e) t -> 'c -> 'c =
+    fun f -> function
+      | One x       -> fun (One y) s -> f x y s
+      | Two (x1,x2) -> let ff1 = papp_fold2 f x1 in
+                       let ff2 = papp_fold2 f x2 in
+                       fun (Two (y1,y2)) s -> ff2 y2 (ff1 y1 s)
+      | Seq xs      -> let ff = list_flip_fold2 (papp_fold2 f) xs in
+                       fun (Seq ys) s -> ff ys s
 end
-
-(* ---- lambda and evaluator --- *)
-
-module IntMap = Map.Make(Int)
-
-let add_var (Sym.Var (i,_)) = IntMap.add i
-
-(* These lambdas could be parameterised over two functors
- * for the expression and the formal/given arguments
- *)
-let lambda aa expr xx  =
-  let open Sym in
-  let env = Tree.foldl (|>) IntMap.empty (Tree.map2 add_var aa xx) in
-  let rec eval = function
-    | Add (a,b) -> eval a +. eval b
-    | Mul (a,b) -> eval a *. eval b
-    | Pow (n,x) -> eval x ** n
-    | Var (i,_) -> IntMap.find i env
-    | Const x   -> x
-  in Tree.map eval expr
-
-let lambda2 (aa : Sym.term Tree.t) (expr : Sym.term Tree.t) : (float Tree.t -> float Tree.t) =
-  (* uses partially applied maps and folds to 'compile' all
-   * the pattern matching away once first two arguments are
-   * given. Not clear if its any faster *)
-  let open Sym in
-  let rec eval : (Sym.t -> float IntMap.t -> float) = function
-    | Add (a,b) -> let ea, eb = eval a, eval b in fun env -> ea env +. eb env
-    | Mul (a,b) -> let ea, eb = eval a, eval b in fun env -> ea env *. eb env
-    | Pow (n,x) -> let ex = eval x in fun env -> ex env ** n
-    | Var (i,_) -> IntMap.find i
-    | Const x   -> fun _ -> x in
-  let map_over_evals = Tree.flip_map (Tree.map eval expr) in
-  let env_builder = Tree.papp_fold2 add_var aa in
-  fun xx -> map_over_evals (apply_to (env_builder xx IntMap.empty))

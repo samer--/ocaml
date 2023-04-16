@@ -9,244 +9,12 @@
 (* type system = body list *)
 (* type body = position * velocity * mass * thrust * visual *)
 
-open Gravity
+open Gravlib
 open Utils
-open Algebra
 open Symbolic
+open Algebra
+open Gravity
 
-module Verlet (V:VECTOR) = struct
-  open V
-  open ScalarOps (Scalar)
-
-	let two = one + one
-  let velocity_verlet f h (t1, (x1, v1)) =
-		let h2 = h/two in
-
-    let a1 = f t1 x1 in
-    let t2 = t1 + h in
-    let x2 = x1 <+> h *> (v1 <+> h2 *> a1) in
-    let a2 = f t2 x2 in
-    let v2 = v1 <+> h2 *> (a1 <+> a2) in
-    (t2, (x2, v2))
-
-  let velocity_verlet' f h (t1, (x1, v1)) =
-		let h2 = h/two in
-
-    let a1 = f t1 x1 v1 in
-    let t2 = t1 + h in
-    let x2 = x1 <+> h *> (v1 <+> h2 *> a1) in
-    let a2 = f t2 x2 (v1 <+> h *> a1) in
-    let v2 = v1 <+> h2 *> (a1 <+> a2)
-    in (t2, (x2, v2))
-end
-
-module RK (V: VECTOR) = struct
-  (** Runge-Kutta integrator, 4th order
-   *  Works for any vector space.
-   *)
-  open V
-  open ScalarOps (Scalar)
-
-	let two = one + one
-	let six = two + two + two
-
-	let step f h (t, x) =
-		let h2 = V.Scalar.(h/two) in
-    let t_ = t + h2 in
-    let t2 = t + h in
-		let k1 = f t x in
-		let k2 = f t_ (x <+> h2*>k1) in
-		let k3 = f t_ (x <+> h2*>k2) in
-		let k4 = f t2  (x <+> h *>k3) in
-		(t2, x <+> (h/six)*>(k1 <+> two*>k2 <+> two*>k3 <+> k4))
-end
-
-(* Gravitational potential *)
-
-module Gravity (V: VECTOR) = struct
-  (* Gravitational Hamiltonian. Works for any vector space,
-   * including vectors over a symbolic field. Masses is a list
-   * of scalars, while positions and momenta are lists of vectors.
-   *)
-  open VectorOps (V)
-  open ScalarOps (Scalar) (* field of vector space *)
-  open List
-
-  let two = one + one
-	let g = pow (-8.0) two (* arbitrary constant *)
-	let kinetic m p = (p <*> p)/(two*m)
-
-	let grav_pot ((m1,r1), (m2,r2)) =
-    (* pure gravitational interaction, point masses *)
-		let dr = r2 <-> r1 in
-    neg (g*m1*m2/sqrt(dr <*> dr))
-
-	let soft_pot r0 ((m1,r1), (m2,r2)) =
-    (* no singularity at zero - quadratic at close range *)
-		let dr = r2 <-> r1 in
-    neg (g*m1*m2/sqrt((dr <*> dr) + pow 2.0 (of_float r0)))
-
-	let bouncy_pot r0 ((m1,r1), (m2,r2)) =
-    (* repulsive at short range *)
-		let dr = r2 <-> r1 in
-    let dr2 =dr <*> dr in
-    g*m1*m2*(of_float r0 - sqrt(dr2))/dr2
-
-	let hamiltonian potential masses positions momenta =
-    let sum xs = List.fold_left ( + ) zero xs in
-    sum (map potential (pairs (combine masses positions))) + sum (map2 kinetic masses momenta)
-end
-
-module Float2D     = Vector (Pair) (Float)
-module GravSym2D   = Gravity (Vector (Pair) (Sym))
-
-
-let system potential bodies =
-  (* symbolic system description *)
-  let symbolic_system n =
-    let indices = iota n in
-    let kth prefix k = prefix ^ "_" ^ string_of_int k in
-    let ms = List.map (Sym.var -| kth "m") indices in
-    let xs, ps =
-      let new_vec prefix k =
-        let f = Sym.var -| (kth (kth prefix k)) in (f 1, f 2) in
-      ( (List.map (new_vec "x") indices),
-        (List.map (new_vec "p") indices)
-      ) in
-
-    let ham = GravSym2D.hamiltonian potential ms xs ps in
-    let dHam = Sym.deriv ham in
-
-    let open Tree in
-    let mm = from_scalars ms in
-    let xx, pp = from2d xs, from2d ps in
-    let xd, pd = map dHam pp, map (Sym.neg -| dHam) xx in
-    let h = lambda (mm <> (xx <> pp)) (One ham) in
-    let f = lambda (mm <> (xx <> pp)) (xd <> pd) in
-    f, h, (xs, ps, xd, pd) in
-
-  let f, h, _ = symbolic_system (List.length bodies) in
-  let ms, xs, vs = unzip3 bodies in
-  let ps = List.map2 Float2D.( *> ) ms vs in
-  let open Tree in
-  let mvals = from_scalars ms in
-  ((fun state -> h (mvals <> state)),
-   (fun _ state -> f (mvals <> state)),
-   from2d xs <> from2d ps)
-
-module RKAggVec = RK (Vector (Tree) (Float))
-
-
-module RenderCairo = struct
-  let two_pi = 8. *. atan 1.0
-  let report name x = Printf.printf "\n%s = %f\n%!" name x; x
-
-  exception IgnoredKey
-
-  type 's state = { kt: float
-                  ; dt: float
-                  ; rt: float
-                  ; kx: float
-                  ; ds: float * 's
-                  ; t_last: float
-                  ; spf: float
-                  ; stop: bool
-                  ; focus: int option
-                  }
-
-  type shape = Point of (float * float)
-             | Disc of int * (float * float)
-
-  let render (_t0,s0) =
-    let open Tree in
-    let render1 (Seq [One x; One y]) = Point (x,y) in
-    let Two (Seq pos, _) = s0 in
-    List.map render1 pos
-
-  let fill_circle cr ((x,y), r) =
-    Cairo.arc cr x y ~r ~a1:0. ~a2:two_pi;
-    Cairo.Path.close cr;
-    Cairo.fill cr
-
-
-  let display cx cy kx (ox,oy) cr colours shapes =
-    let pixel cr = uncurry max (Cairo.device_to_user_distance cr 4.0 4.0) in
-    let display1 a_pixel (colour, shape) =
-      let (r,g,b) = colour in begin
-        Cairo.set_source_rgb cr r g b;
-        fill_circle cr (match shape with
-          | Point pt    -> (pt, a_pixel);
-          | Disc (r,pt) -> (pt, float r))
-        end in
-
-    Cairo.save cr;
-    Cairo.translate cr cx cy;
-    Cairo.scale cr kx (~-.kx);
-    Cairo.translate cr (~-.ox) (~-.oy);
-    List.iter (display1 (pixel cr)) (List.combine colours shapes);
-    Cairo.restore cr
-
-  let position_of_nth s i =
-    let open Tree in
-    let (Two (Seq pos, _)) = s in
-    let (Seq [One x; One y]) = List.nth pos i in
-    (x, y)
-
-  let state_machine (h,f,s0) colours dt t_start =
-    let advance dt = iterate 16 (RKAggVec.step f (dt/.16.0)) in
-
-    let draw (width,height) cr state =
-      let t0,s0 = state.ds in
-      let origin = match state.focus with
-        | None -> (0.0,0.0)
-        | Some i -> position_of_nth s0 i in
-      state.ds |> render |> display (width/.2.) (height/.2.) state.kx origin cr colours;
-
-      let Tree.One energy = h s0 in
-      let t_now = get_time () in
-      let spf = 0.98 *. state.spf +. 0.02 *. (t_now -. state.t_last) in
-      let fps = 1. /. spf in
-      let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%4.0f  \r" t0 energy fps in
-      Cairo.set_source_rgb cr 0.9 0.5 0.05;
-      Cairo.move_to cr 8. (height -. 8.);
-      Cairo.set_font_size cr 28.;
-      Cairo.show_text cr text;
-      { state with rt=state.rt +. dt;
-                   ds=advance (state.kt *. dt) state.ds;
-                   t_last=t_now; spf=spf} in
-
-
-    let handle s = function
-      | 'q' -> {s with stop=true}
-      | '<' -> {s with dt=(report "dt" (s.dt/.2.))}
-      | '>' -> {s with dt=(report "dt" (s.dt*.2.))}
-      | '[' -> {s with kt=(report "kt" (s.kt/.2.))}
-      | ']' -> {s with kt=(report "kt" (s.kt*.2.))}
-      | 'r' -> {s with kt=(report "kt" (~-.(s.kt)))}
-      | '-' -> {s with kx=(report "kx" (s.kx/.2.))}
-      | '=' -> {s with kx=(report "kx" (s.kx*.2.))}
-      | 'i' -> {s with ds=(0.0,s0)}
-      | '0' -> {s with focus=None}
-      | '1' -> {s with focus=Some 0}
-      | '2' -> {s with focus=Some 1}
-      | '3' -> {s with focus=Some 2}
-      | '4' -> {s with focus=Some 3}
-      | _   -> raise IgnoredKey
-    in
-
-    let key_press s ev =
-      let code, str = GdkEvent.Key.(keyval ev, string ev) in
-      Printf.printf "keypress %d (%s)\n%!" code str;
-      try handle s (Char.chr code), true
-      with IgnoredKey -> s, false in
-
-    let stop state = state.stop in
-    ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); spf=dt; t_last=t_start; stop=false; focus=None},
-       dt, stop, draw, [ `KEY_PRESS; `KEY_RELEASE ], [ Gtktools.link (fun cs -> cs#key_press) key_press ])
-    (* end of state_machine *)
-  let stop sref = (!sref).stop
-  let gtk_system dt colours def = get_time ()  +. 0.5 |> state_machine def colours dt
-end
 
 (* numeric description *)
 let zeroV = (0.0,0.0)
@@ -288,22 +56,35 @@ let binary_suns =
 
 let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_suns]
 
-let offline_run num_iter (h,f,s0) dt =
-  let advance s =
-    let Tree.One energy = h (snd s) in
-    iterate 32 (RKAggVec.step f (dt/.32.0)) s in
-  ignore (iterate num_iter advance (0.0, s0))
 
 let main args =
-  let colours, bodies = unzip (List.nth systems (int_of_string args.(1))) in
-  let sys = system (GravSym2D.soft_pot (float_of_string args.(3))) bodies in
+  let module ListFloat2D = VList (Float2D) in
+  let module Integrator = Integrators.HamiltonianRungeKutta (ListFloat2D) in
+
+  let colours, bodies    = unzip (List.nth systems (int_of_string args.(1))) in
+  let (h,dhdq',dhdp',s0) = system (GravSym2D.soft_pot (float_of_string args.(3))) bodies in
+  let tree_of_list_pair (q,p) = Tree.(Two (of_pairs q, of_pairs p)) in
+  let pairlist_of_tree = Tree.(List.map pair_of_two % list_of_seq) in
+  let dhdq = pairlist_of_tree % dhdq' % tree_of_list_pair in
+  let dhdp = pairlist_of_tree % dhdp' % tree_of_list_pair in
+  let advance dt      = iterate 16 (Integrator.step dhdq dhdp (dt/.16.0)) in
+  let energy_of_state = Tree.(un_one % h % tree_of_list_pair) in
+  let list_pair_of_tree (Tree.Two (s1,s2)) = (pairlist_of_tree s1, pairlist_of_tree s2) in
+
   if Array.length args > 4 then
     let open Core_bench in
-    let run () = offline_run (int_of_string args.(4)) sys (float_of_string args.(2)) in
+    let offline_run num_iter dt =
+      let advance' s =
+        ignore (energy_of_state (snd s));
+        advance dt s in
+      ignore (iterate num_iter advance' (0.0, list_pair_of_tree s0)) in
+
+    let run () = offline_run (int_of_string args.(4)) (float_of_string args.(2)) in
     Bench.bench [Bench.Test.create ~name: ("system " ^ args.(1)) run]
   else
     let open Gtktools in
+    let sys = (energy_of_state, advance, list_pair_of_tree s0) in
     with_system setup_pixmap_backing animate_with_loop
-                (RenderCairo.gtk_system (float_of_string args.(2)) colours sys)
+                (Nbodysim.gtk_system (float_of_string args.(2)) colours sys)
 
 let _ = if not !Sys.interactive then main Sys.argv else ()

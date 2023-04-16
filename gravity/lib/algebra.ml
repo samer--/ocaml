@@ -51,6 +51,31 @@ module Float : SCALAR with type t = float = struct
   let of_float x = x
 end
 
+(* Direct sum of two vector spaces over same field, aka product in categorical sense *)
+module VSum (V1:VECTOR) (V2:VECTOR with module Scalar = V1.Scalar)
+  : VECTOR with type t = V1.t * V2.t and module Scalar = V1.Scalar
+= struct
+  type t = V1.t * V2.t
+  module Scalar = V1.Scalar
+
+  let ( *> ) k (x,y) = (V1.(k *> x), V2.(k *> y))
+  let ( <+> ) (x1,y1) (x2,y2) = (V1.(x1 <+> x2), V2.(y1 <+> y2))
+  let ( <*> ) (x1,y1) (x2,y2) = Scalar.(V1.(x1 <*> x2) + V2.(y1 <*> y2))
+  let negV (x,y) = (V1.negV x, V2.negV y)
+end
+
+module VList (V:VECTOR): VECTOR with type t = V.t list and module Scalar = V.Scalar = struct
+  type t = V.t list
+  module Scalar = V.Scalar
+  open Scalar
+  open List
+
+  let ( *> ) k xs = map (V.( *> ) k) xs
+  let ( <+> ) = map2 V.(<+>)
+  let ( <*> ) xs1 xs2 = fold_left (+) zero (map2 V.( <*> ) xs1 xs2)
+  let negV = map V.negV
+end
+
 module type CONTAINER = sig
   (* a container that is mappable, zippable and foldable *)
   type 'a t
@@ -73,7 +98,6 @@ module Vector (C:CONTAINER) (S:SCALAR) : VECTOR with module Scalar = S and type 
 
   module Scalar = S
   open S
-  open Utils
 
   let ( *> ) k x = C.map (( * ) k) x
 
@@ -82,9 +106,23 @@ module Vector (C:CONTAINER) (S:SCALAR) : VECTOR with module Scalar = S and type 
   let ( <*> ) x y = C.foldl (+) zero (C.map2 ( * ) x y)
 end
 
+module Vec2D (S:SCALAR) : VECTOR with module Scalar = S and type t = S.t * S.t = struct
+  type t = S.t * S.t
+
+  module Scalar = S
+  open S
+
+  let ( *> ) k (x,y) = (k * x, k * y)
+  let ( <+> ) (x1,y1) (x2,y2) = (x1 + x2, y1 + y2)
+  let ( <*> ) (x1,y1) (x2,y2) = (x1 * x2) + (y1 * y2)
+  let negV (x,y) = (neg x, neg y)
+end
+
 module VectorOps (V:VECTOR) = struct
   include V
   open ScalarOps (Scalar)
+  type v = V.t
+  type s = Scalar.t
 
   let ( </ ) x y = recip y *> x
   let ( <-> ) x y = x <+> negV y
