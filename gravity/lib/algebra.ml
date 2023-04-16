@@ -76,36 +76,6 @@ module VList (V:VECTOR): VECTOR with type t = V.t list and module Scalar = V.Sca
   let negV = map V.negV
 end
 
-module type CONTAINER = sig
-  (* a container that is mappable, zippable and foldable *)
-  type 'a t
-
-  val map : ('a -> 'b) -> 'a t -> 'b t
-  val map2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
-  val foldl : ('s -> 'a -> 's) -> 's -> 'a t -> 's
-end
-
-module Pair = struct
-  type 'a t = 'a * 'a
-
-  let map f (x,y) = (f x, f y)
-  let map2 f (x1,y1) (x2,y2) = (f x1 x2, f y1 y2)
-  let foldl f s (x1,y1) = f (f s x1) y1
-end
-
-module Vector (C:CONTAINER) (S:SCALAR) : VECTOR with module Scalar = S and type t = S.t C.t = struct
-  type t = S.t C.t
-
-  module Scalar = S
-  open S
-
-  let ( *> ) k x = C.map (( * ) k) x
-
-  let negV = C.map neg
-  let ( <+> ) = C.map2 (+)
-  let ( <*> ) x y = C.foldl (+) zero (C.map2 ( * ) x y)
-end
-
 module Vec2D (S:SCALAR) : VECTOR with module Scalar = S and type t = S.t * S.t = struct
   type t = S.t * S.t
 
