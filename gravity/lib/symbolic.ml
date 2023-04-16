@@ -69,7 +69,7 @@ end
 
 
 module Tree = struct
-  (* Aggregation of things *)
+  (* tree nodes typed by leaf type AND shape *)
   type ('a,'b) t = | Seq : ('a,'b) t list -> ('a,'b list) t
                    | Two : ('a,'b) t * ('a,'c) t -> ('a,'b*'c) t
                    | One : 'a -> ('a,unit) t
