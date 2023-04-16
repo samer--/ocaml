@@ -41,6 +41,7 @@ let lambda2 : ('a,'b) tree_lambda = fun aa expr ->
   let map_over_evals = Tree.flip_map (Tree.map eval expr) in
   let env_builder = Tree.papp_fold2 add_var aa in
   fun xx -> map_over_evals (apply_to (env_builder xx IntMap.empty))
+
 (* Gravitational potential *)
 
 module Gravity (V: VECTOR) = struct
@@ -77,13 +78,13 @@ module Gravity (V: VECTOR) = struct
     sum (map potential (pairs (combine masses positions))) + sum (map2 kinetic masses momenta)
 end
 
-(* module Float2D   = Vector (Pair) (Float) *)
-(* module GravSym2D = Gravity (Vector (Pair) (Sym)) *)
 module Float2D   = Vec2D (Float)
-module GravSym2D = Gravity (Vec2D (Sym))
 
-let system potential bodies =
-  (* symbolic system description *)
+let system (softness: float) bodies =
+  let module ListFloat2D = VList (Float2D) in
+  let module Integrator = Integrators.HamiltonianRungeKutta (ListFloat2D) in
+  let module GravSym2D = Gravity (Vec2D (Sym)) in
+
   let ms, xs, vs = unzip3 bodies in
   let symbolic_system n =
     let indices = iota n in
@@ -96,7 +97,7 @@ let system potential bodies =
         (List.map (new_vec "p") indices)
       ) in
 
-    let ham = GravSym2D.hamiltonian potential ms qs ps in
+    let ham = GravSym2D.hamiltonian (GravSym2D.soft_pot softness) ms qs ps in
     let dHam = Sym.deriv ham in
 
     let qq, pp = Tree.of_pairs qs, Tree.of_pairs ps in
@@ -107,8 +108,12 @@ let system potential bodies =
     let dhdp = lambda coors pd in
     h, dhdq, dhdp in
 
-  let h, dhdq,dhdp = symbolic_system (List.length bodies) in
-  let ps = List.map2 Float2D.( *> ) ms vs in
-  Tree.(h, dhdq, dhdp, Two (of_pairs xs, of_pairs ps))
-
-
+  let h, dhdq', dhdp'         = symbolic_system (List.length bodies) in
+  let pairlist_of_tree        = Tree.(List.map pair_of_two % list_of_seq) in
+  let tree_of_list_pair (q,p) = Tree.(Two (of_pairs q, of_pairs p)) in
+  let dhdq = pairlist_of_tree % dhdq' % tree_of_list_pair in
+  let dhdp = pairlist_of_tree % dhdp' % tree_of_list_pair in
+  ( (xs, List.map2 Float2D.( *> ) ms vs) (* initial state *)
+  , Tree.(un_one % h % tree_of_list_pair)      (* energy_of_state *)
+  , (fun dt -> iterate 16 (Integrator.step dhdq dhdp (dt/.16.0)))
+  )

@@ -10,9 +10,6 @@
 (* type body = position * velocity * mass * thrust * visual *)
 
 open Gravlib
-open Utils
-open Symbolic
-open Algebra
 open Gravity
 
 
@@ -58,18 +55,10 @@ let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_sun
 
 
 let main args =
-  let module ListFloat2D = VList (Float2D) in
-  let module Integrator = Integrators.HamiltonianRungeKutta (ListFloat2D) in
+  let open Utils in
 
   let colours, bodies    = unzip (List.nth systems (int_of_string args.(1))) in
-  let (h,dhdq',dhdp',s0) = system (GravSym2D.soft_pot (float_of_string args.(3))) bodies in
-  let tree_of_list_pair (q,p) = Tree.(Two (of_pairs q, of_pairs p)) in
-  let pairlist_of_tree = Tree.(List.map pair_of_two % list_of_seq) in
-  let dhdq = pairlist_of_tree % dhdq' % tree_of_list_pair in
-  let dhdp = pairlist_of_tree % dhdp' % tree_of_list_pair in
-  let advance dt      = iterate 16 (Integrator.step dhdq dhdp (dt/.16.0)) in
-  let energy_of_state = Tree.(un_one % h % tree_of_list_pair) in
-  let list_pair_of_tree (Tree.Two (s1,s2)) = (pairlist_of_tree s1, pairlist_of_tree s2) in
+  let s0, energy_of_state, advance = system (float_of_string args.(3)) bodies in
 
   if Array.length args > 4 then
     let open Core_bench in
@@ -77,13 +66,13 @@ let main args =
       let advance' s =
         ignore (energy_of_state (snd s));
         advance dt s in
-      ignore (iterate num_iter advance' (0.0, list_pair_of_tree s0)) in
+      ignore (iterate num_iter advance' (0.0, s0)) in
 
     let run () = offline_run (int_of_string args.(4)) (float_of_string args.(2)) in
     Bench.bench [Bench.Test.create ~name: ("system " ^ args.(1)) run]
   else
     let open Gtktools in
-    let sys = (energy_of_state, advance, list_pair_of_tree s0) in
+    let sys = (energy_of_state, advance, s0) in
     with_system setup_pixmap_backing animate_with_loop
                 (Nbodysim.gtk_system (float_of_string args.(2)) colours sys)
 
