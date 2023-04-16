@@ -42,29 +42,42 @@ module HamiltonianRungeKutta (V: VECTOR with module Scalar = Float)
     RK.step f dt (t,x)
 end
 
-module Verlet (V:VECTOR) = struct
-  open V
+module HamiltonianVerlet (V:VECTOR with module Scalar = Float)
+  : HAMILTONIAN_INTEGRATOR with module V = V = struct
+  module V = V
+  open VectorOps (V)
   open ScalarOps (Scalar)
 
-	let two = one + one
-  let velocity_verlet f h (t1, (x1, v1)) =
-		let h2 = h/two in
-
-    let a1 = f t1 x1 in
-    let t2 = t1 + h in
-    let x2 = x1 <+> h *> (v1 <+> h2 *> a1) in
-    let a2 = f t2 x2 in
-    let v2 = v1 <+> h2 *> (a1 <+> a2) in
-    (t2, (x2, v2))
-
-  let velocity_verlet' f h (t1, (x1, v1)) =
-		let h2 = h/two in
-
-    let a1 = f t1 x1 v1 in
-    let t2 = t1 + h in
-    let x2 = x1 <+> h *> (v1 <+> h2 *> a1) in
-    let a2 = f t2 x2 (v1 <+> h *> a1) in
-    let v2 = v1 <+> h2 *> (a1 <+> a2)
-    in (t2, (x2, v2))
+  let step dHdp dHdq dt (t,(q,p)) =
+		let d2 = 0.5*dt in
+    let p1 = p  <-> d2 *> dHdq (q,p) in
+    let q2 = q  <+> dt *> dHdp (q,p1) in
+    let p2 = p1 <-> d2 *> dHdq (q2,p1) in
+    (t + dt, (q2,p2))
 end
 
+module type COEFFICIENTS = sig val coeffs: (float * float) list end
+module Sym2 = struct let coeffs = [1.0,0.5; 0.0,0.5] end
+module Sym3 = struct
+  let coeffs =
+    let two_thirds, one_24 = (2.0/.3.0, 1.0/.24.0) in
+    [ two_thirds,   0.25 +. one_24
+    ; -.two_thirds, 0.75
+    ; 1.0,          -.one_24
+    ]
+end
+
+module Symplectic (C:COEFFICIENTS) (V:VECTOR with module Scalar = Float)
+  : HAMILTONIAN_INTEGRATOR with module V = V = struct
+  module V = V
+  open VectorOps (V)
+  open ScalarOps (Scalar)
+
+  let step dHdp dHdq dt (t,(q,p)) =
+    let thingy (q,p) (c,d) =
+      let p1 = p  <-> (d*dt) *> dHdq (q,p) in
+      let q1 = q  <+> (c*dt) *> dHdp (q,p1) in
+      (q1,p1) in
+
+  (t + dt, List.fold_left thingy (q,p) C.coeffs)
+end

@@ -80,7 +80,9 @@ end
 
 let system (softness: float) bodies =
   let module ListFloat2D = VList (Float2D) in
-  let module Integrator = Integrators.HamiltonianRungeKutta (ListFloat2D) in
+  (* let module Integrator = Integrators.HamiltonianRungeKutta (ListFloat2D) in *)
+  (* let module Integrator = Integrators.HamiltonianVerlet (ListFloat2D) in *)
+  let module Integrator = Integrators.Symplectic (Integrators.Sym3) (ListFloat2D) in
   let module GravSym2D = Gravity (Vec2D (Sym)) in
 
   let ms, xs, vs = unzip3 bodies in
