@@ -99,5 +99,6 @@ let state_machine (energy_of_state, advance, s0) colours dt t_start =
   ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); spf=dt; t_last=t_start; stop=false; focus=None},
      dt, stop, draw, [ `KEY_PRESS; `KEY_RELEASE ], [ Gtktools.link (fun cs -> cs#key_press) key_press ])
   (* end of state_machine *)
+
 let stop sref = (!sref).stop
 let gtk_system dt colours def = state_machine def colours dt (get_time ()  +. 0.5)
