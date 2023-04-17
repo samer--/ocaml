@@ -31,10 +31,10 @@ let sun_two_planets =
   ]
 
 let sun_contra_planets =
-  [ yellow, (500.0, zeroV          , (-0.1 *> unit2))
-  ; blue,   (20.0  , 1.00 *> unit1, 1.10 *> unit2)
-  ; red,    (10.0  , (-1.) *> unit1, 1.00 *> unit2)
-  ; green,  (10.0  , (-1.5) *> unit1, (1.)*> unit2)
+  [ yellow, (500.0, zeroV        , -0.15 *> unit2)
+  ; blue,   (50.0 , 1.00 *> unit1, 1.1 *> unit2)
+  ; red,    (20.0 , -1.  *> unit1, 1. *> unit2)
+  ; green,  (20.0 , -1.5 *> unit1, 1. *> unit2)
   ]
 
 let sun_planet_moons =
@@ -81,7 +81,7 @@ let main args =
     let offline_run num_iter dt =
       let advance' s =
         ignore (energy_of_state (snd s));
-        advance dt s in
+        iterate 16 (advance (dt/.16.)) s in
       ignore (iterate num_iter advance' (0.0, s0)) in
 
     let run () = offline_run (int_of_string args.(5)) (float_of_string args.(3)) in

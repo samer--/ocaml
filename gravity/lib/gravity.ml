@@ -95,7 +95,7 @@ module Sim2D (I: Integrators.INTEGRATOR) = struct
           (List.map (new_vec "p") indices)
         ) in
 
-      let ham = GravSym2D.hamiltonian (GravSym2D.bouncy_pot softness) ms qs ps in
+      let ham = GravSym2D.hamiltonian (GravSym2D.soft_pot softness) ms qs ps in
       let dHam = Sym.deriv ham in
 
       let qq, pp = Tree.of_pairs qs, Tree.of_pairs ps in
