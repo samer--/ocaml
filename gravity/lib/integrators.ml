@@ -5,10 +5,9 @@ module VecTypes (V: VECTOR) = struct
   type s = V.Scalar.t
 end
 
-module type HAMILTONIAN_INTEGRATOR = sig
-  module V : VECTOR (* the type of position and momentum vectors *)
+module type INTEGRATOR = functor (V: VECTOR with module Scalar = Float) -> sig
   open VecTypes (V)
-  val step : (c -> V.t) -> (c -> V.t) -> s -> s*c -> s*c
+  val step: (c -> V.t) -> (c -> V.t) -> s -> s*c -> s*c
 end
 
 module RungeKutta (V: VECTOR) = struct
@@ -32,8 +31,7 @@ module RungeKutta (V: VECTOR) = struct
 		(t2, x <+> (h/six)*>(k1 <+> two*>k2 <+> two*>k3 <+> k4))
 end
 
-module HamiltonianRungeKutta (V: VECTOR with module Scalar = Float)
-  : HAMILTONIAN_INTEGRATOR with module V = V = struct
+module HamiltonianRungeKutta: INTEGRATOR = functor (V: VECTOR with module Scalar = Float) -> struct
   module V = V
   module RK = RungeKutta (VSum (V) (V))
 
@@ -51,8 +49,7 @@ end
   https://github.com/yl3dy/nbody_playground/blob/master/nbody_sim/engines/naive.py
 *)
 
-module HamiltonianVerlet (V:VECTOR with module Scalar = Float)
-  : HAMILTONIAN_INTEGRATOR with module V = V = struct
+module HamiltonianVerlet: INTEGRATOR = functor (V:VECTOR with module Scalar = Float) -> struct
   module V = V
   open VectorOps (V)
   open ScalarOps (Scalar)
@@ -82,8 +79,7 @@ module Sym4 = struct
                  ([0.; 1.     ;    -. r; 1.] |> divl (2. -. r))
 end
 
-module Symplectic (C:COEFFICIENTS) (V:VECTOR with module Scalar = Float)
-  : HAMILTONIAN_INTEGRATOR with module V = V = struct
+module Symplectic (C:COEFFICIENTS): INTEGRATOR = functor (V:VECTOR with module Scalar = Float) -> struct
   module V = V
   open VectorOps (V)
   open ScalarOps (Scalar)
@@ -92,9 +88,6 @@ module Symplectic (C:COEFFICIENTS) (V:VECTOR with module Scalar = Float)
     let thingy (q,p) (c,d) =
       let p1 = p  <-> (d*dt) *> dHdq (q,p) in
       let q1 = q  <+> (c*dt) *> dHdp (q,p1) in
-      (* somehow dual version *)
-      (* let q1 = q  <+> (d*dt) *> dHdp (q,p) in *)
-      (* let p1 = p  <+> (c*dt) *> dHdq (q1,p) in *)
       (q1,p1) in
 
   (t + dt, List.fold_left thingy (q,p) C.coeffs)

@@ -78,42 +78,41 @@ module Gravity (V: VECTOR) = struct
     sum (map potential (pairs (combine masses positions))) + sum (map2 kinetic masses momenta)
 end
 
-let system (softness: float) bodies =
-  let module ListFloat2D = VList (Float2D) in
-  (* let module Integrator = Integrators.HamiltonianRungeKutta (ListFloat2D) in *)
-  (* let module Integrator = Integrators.HamiltonianVerlet (ListFloat2D) in *)
-  let module Integrator = Integrators.Symplectic (Integrators.Sym4) (ListFloat2D) in
-  let module GravSym2D = Gravity (Vec2D (Sym)) in
+module Sim2D (I: Integrators.INTEGRATOR) = struct
+  let system (softness: float) bodies =
+    let module Integrator = I (VList (Float2D)) in
+    let module GravSym2D = Gravity (Vec2D (Sym)) in
 
-  let ms, xs, vs = unzip3 bodies in
-  let symbolic_system n =
-    let indices = iota n in
-    let kth prefix k = prefix ^ "_" ^ string_of_int k in
-    let ms = List.map Sym.const ms in
-    let qs, ps =
-      let new_vec prefix k =
-        let f = Sym.var % (kth (kth prefix k)) in (f 1, f 2) in
-      ( (List.map (new_vec "q") indices),
-        (List.map (new_vec "p") indices)
-      ) in
+    let ms, xs, vs = unzip3 bodies in
+    let symbolic_system n =
+      let indices = iota n in
+      let kth prefix k = prefix ^ "_" ^ string_of_int k in
+      let ms = List.map Sym.const ms in
+      let qs, ps =
+        let new_vec prefix k =
+          let f = Sym.var % (kth (kth prefix k)) in (f 1, f 2) in
+        ( (List.map (new_vec "q") indices),
+          (List.map (new_vec "p") indices)
+        ) in
 
-    let ham = GravSym2D.hamiltonian (GravSym2D.bouncy_pot softness) ms qs ps in
-    let dHam = Sym.deriv ham in
+      let ham = GravSym2D.hamiltonian (GravSym2D.bouncy_pot softness) ms qs ps in
+      let dHam = Sym.deriv ham in
 
-    let qq, pp = Tree.of_pairs qs, Tree.of_pairs ps in
-    let qd, pd = Tree.map dHam pp, Tree.map dHam qq in
-    let coors  = Tree.Two (qq, pp) in
-    let h    = lambda coors (Tree.One ham) in
-    let dhdq = lambda coors qd in
-    let dhdp = lambda coors pd in
-    h, dhdq, dhdp in
+      let qq, pp = Tree.of_pairs qs, Tree.of_pairs ps in
+      let qd, pd = Tree.map dHam pp, Tree.map dHam qq in
+      let coors  = Tree.Two (qq, pp) in
+      let h    = lambda coors (Tree.One ham) in
+      let dhdq = lambda coors qd in
+      let dhdp = lambda coors pd in
+      h, dhdq, dhdp in
 
-  let h, dhdq', dhdp'         = symbolic_system (List.length bodies) in
-  let pairlist_of_tree        = Tree.(List.map pair_of_two % list_of_seq) in
-  let tree_of_list_pair (q,p) = Tree.(Two (of_pairs q, of_pairs p)) in
-  let dhdq = pairlist_of_tree % dhdq' % tree_of_list_pair in
-  let dhdp = pairlist_of_tree % dhdp' % tree_of_list_pair in
-  ( Tree.(un_one % h % tree_of_list_pair)      (* energy_of_state *)
-  , (fun dt -> iterate 32 (Integrator.step dhdq dhdp (dt/.32.0)))
-  , (xs, List.map2 Float2D.( *> ) ms vs)       (* initial state *)
-  )
+    let h, dhdq', dhdp'         = symbolic_system (List.length bodies) in
+    let pairlist_of_tree        = Tree.(List.map pair_of_two % list_of_seq) in
+    let tree_of_list_pair (q,p) = Tree.(Two (of_pairs q, of_pairs p)) in
+    let dhdq = pairlist_of_tree % dhdq' % tree_of_list_pair in
+    let dhdp = pairlist_of_tree % dhdp' % tree_of_list_pair in
+    ( Tree.(un_one % h % tree_of_list_pair) (* energy_of_state *)
+    , Integrator.step dhdq dhdp             (* update state *)
+    , (xs, List.map2 Float2D.( *> ) ms vs)  (* initial state *)
+    )
+end

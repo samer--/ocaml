@@ -1,9 +1,9 @@
 (* TODO
- * choose integrator from command line args
  * render to cairo (not gdk), then blit to drawing area
  * Add MLI files
  * attitude and thrust
  * load system spec from file
+ * nice command line arguments
  *)
 
 (* type system = body list *)
@@ -11,7 +11,7 @@
 
 open Gravlib
 open Algebra.Float2D
-
+open Integrators
 
 (* numeric description *)
 let zeroV = (0.0,0.0)
@@ -61,14 +61,21 @@ let three_body =
 
 let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_suns; three_body]
 
+let integrators : (module INTEGRATOR) list =
+  [ (module HamiltonianRungeKutta)
+  ; (module HamiltonianVerlet)
+  ; (module Symplectic (Sym2))
+  ; (module Symplectic (Sym3))
+  ; (module Symplectic (Sym4))
+  ]
 
 let main args =
   let open Utils in
+  let module GravSim = Gravity.Sim2D (val (List.nth integrators (int_of_string args.(1)))) in
+  let colours, bodies = unzip (List.nth systems (int_of_string args.(2))) in
+  let sys = GravSim.system (float_of_string args.(4)) bodies in
 
-  let colours, bodies = unzip (List.nth systems (int_of_string args.(1))) in
-  let sys = Gravity.system (float_of_string args.(3)) bodies in
-
-  if Array.length args > 4 then
+  if Array.length args > 5 then
     let open Core_bench in
     let energy_of_state, advance, s0 = sys in
     let offline_run num_iter dt =
@@ -77,11 +84,11 @@ let main args =
         advance dt s in
       ignore (iterate num_iter advance' (0.0, s0)) in
 
-    let run () = offline_run (int_of_string args.(4)) (float_of_string args.(2)) in
-    Bench.bench [Bench.Test.create ~name: ("system " ^ args.(1)) run]
+    let run () = offline_run (int_of_string args.(5)) (float_of_string args.(3)) in
+    Bench.bench [Bench.Test.create ~name: ("system " ^ args.(2)) run]
   else
     let open Gtktools in
     with_system setup_pixmap_backing animate_with_loop
-                (Nbodysim.gtk_system (float_of_string args.(2)) colours sys)
+                (Nbodysim.gtk_system (float_of_string args.(3)) colours sys)
 
 let _ = if not !Sys.interactive then main Sys.argv else ()
