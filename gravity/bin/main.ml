@@ -1,16 +1,16 @@
 (* TODO
- * integrators
+ * choose integrator from command line args
  * render to cairo (not gdk), then blit to drawing area
- * simplify algebra
- * Add MLI
+ * Add MLI files
  * attitude and thrust
+ * load system spec from file
  *)
 
 (* type system = body list *)
 (* type body = position * velocity * mass * thrust * visual *)
 
 open Gravlib
-open Algebra
+open Algebra.Float2D
 
 
 (* numeric description *)
@@ -25,33 +25,41 @@ let blue   = (0.5, 0.5, 1.0)
 let white  = (1.0, 1.0, 1.0)
 
 let sun_two_planets =
-  Float2D.[ yellow, (500. , zeroV         , zeroV)
-          ; blue,   (10.  , unit1       , 1.0 *> unit2)
-          ; red,    (0.1  , negV (unit1), (-1.0)*> unit2)
-          ]
+  [ yellow, (500. , zeroV         , zeroV)
+  ; blue,   (10.  , unit1       , 1.0 *> unit2)
+  ; red,    (0.1  , negV (unit1), (-1.0)*> unit2)
+  ]
 
 let sun_contra_planets =
-  Float2D.[ yellow, (500.0, zeroV          , (-0.1 *> unit2))
-          ; blue,   (20.0  , 1.00 *> unit1, 1.10 *> unit2)
-          ; red,    (10.0  , (-1.) *> unit1, 1.00 *> unit2)
-          ; green,  (10.0  , (-1.5) *> unit1, (1.)*> unit2)
-          ]
+  [ yellow, (500.0, zeroV          , (-0.1 *> unit2))
+  ; blue,   (20.0  , 1.00 *> unit1, 1.10 *> unit2)
+  ; red,    (10.0  , (-1.) *> unit1, 1.00 *> unit2)
+  ; green,  (10.0  , (-1.5) *> unit1, (1.)*> unit2)
+  ]
 
 let sun_planet_moons =
-  Float2D.[ yellow, (500.0, zeroV          , (-0.02) *> unit2)
-          ; blue,   (8.0  , 2.00 *> unit1, 1.00 *> unit2)
-          ; red,    (0.1  , 2.10 *> unit1, 1.60 *> unit2)
-          ; white,  (0.5  , 2.20 *> unit1, 1.40 *> unit2)
-          ]
+  [ yellow, (500.0, zeroV          , (-0.02) *> unit2)
+  ; blue,   (8.0  , 2.00 *> unit1, 1.00 *> unit2)
+  ; red,    (0.1  , 2.10 *> unit1, 1.60 *> unit2)
+  ; white,  (0.5  , 2.20 *> unit1, 1.40 *> unit2)
+  ]
 
 let binary_suns =
-  Float2D.[ yellow, (300. ,   0.08  *> unit1, (-2.0) *> unit2)
-          ; blue,   (300. , (-0.08) *> unit1, (2.0)   *> unit2)
-          ; green,  (10.  , unit1       , 1.5 *> unit2)
-          ; red,    (0.1  , negV (unit1), (-1.5)*> unit2)
-          ]
+  [ yellow, (300. ,   0.08  *> unit1, (-2.0) *> unit2)
+  ; blue,   (300. , (-0.08) *> unit1, (2.0)   *> unit2)
+  ; green,  (10.  , unit1       , 1.5 *> unit2)
+  ; red,    (0.1  , negV (unit1), (-1.5)*> unit2)
+  ]
 
-let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_suns]
+let three_body =
+  (* https://joemcewen.github.io/_pages/codes/3body/ *)
+  let a, b, v = (0.97000436, 0.24308753, (-.0.46620368, -.0.4323657)) in
+  [ yellow, (256., (-.a,  b), v)
+  ; green,  (256., (  a,-.b), v)
+  ; red,    (256., zeroV, (0.93240737, 0.8647314))
+  ]
+
+let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_suns; three_body]
 
 
 let main args =
