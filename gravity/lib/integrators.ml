@@ -42,6 +42,15 @@ module HamiltonianRungeKutta (V: VECTOR with module Scalar = Float)
     RK.step f dt (t,x)
 end
 
+(*
+  Symplectic integrators
+
+  https://scicomp.stackexchange.com/questions/20533/test-of-3rd-order-vs-4th-order-symplectic-integrator-with-strange-result
+  http://www.unige.ch/~hairer/software.html
+  https://reference.wolfram.com/language/tutorial/NDSolveSPRK.html
+  https://github.com/yl3dy/nbody_playground/blob/master/nbody_sim/engines/naive.py
+*)
+
 module HamiltonianVerlet (V:VECTOR with module Scalar = Float)
   : HAMILTONIAN_INTEGRATOR with module V = V = struct
   module V = V
@@ -55,16 +64,22 @@ module HamiltonianVerlet (V:VECTOR with module Scalar = Float)
     let p2 = p1 <-> d2 *> dHdq (q2,p1) in
     (t + dt, (q2,p2))
 end
-
 module type COEFFICIENTS = sig val coeffs: (float * float) list end
+
+
+let divl (y:float): float list -> float list = List.map (Utils.divby y)
+
 module Sym2 = struct let coeffs = [1.0,0.5; 0.0,0.5] end
 module Sym3 = struct
+  let coeffs = List.combine ([ 2.; -2.;  3.] |> divl 3.)
+                            ([ 7.; 18.; -1.] |> divl 24.)
+end
+
+module Sym4 = struct
   let coeffs =
-    let two_thirds, one_24 = (2.0/.3.0, 1.0/.24.0) in
-    [ two_thirds,   0.25 +. one_24
-    ; -.two_thirds, 0.75
-    ; 1.0,          -.one_24
-    ]
+    let r = Stdlib.Float.(pow 2. (1./.3.)) in
+    List.combine ([1.; 1. -. r; 1. -. r; 1.] |> divl (2. -. r) |> divl 2.)
+                 ([0.; 1.     ;    -. r; 1.] |> divl (2. -. r))
 end
 
 module Symplectic (C:COEFFICIENTS) (V:VECTOR with module Scalar = Float)
@@ -77,6 +92,9 @@ module Symplectic (C:COEFFICIENTS) (V:VECTOR with module Scalar = Float)
     let thingy (q,p) (c,d) =
       let p1 = p  <-> (d*dt) *> dHdq (q,p) in
       let q1 = q  <+> (c*dt) *> dHdp (q,p1) in
+      (* somehow dual version *)
+      (* let q1 = q  <+> (d*dt) *> dHdp (q,p) in *)
+      (* let p1 = p  <+> (c*dt) *> dHdq (q1,p) in *)
       (q1,p1) in
 
   (t + dt, List.fold_left thingy (q,p) C.coeffs)
