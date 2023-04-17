@@ -82,7 +82,7 @@ let system (softness: float) bodies =
   let module ListFloat2D = VList (Float2D) in
   (* let module Integrator = Integrators.HamiltonianRungeKutta (ListFloat2D) in *)
   (* let module Integrator = Integrators.HamiltonianVerlet (ListFloat2D) in *)
-  let module Integrator = Integrators.Symplectic (Integrators.Sym3) (ListFloat2D) in
+  let module Integrator = Integrators.Symplectic (Integrators.Sym4) (ListFloat2D) in
   let module GravSym2D = Gravity (Vec2D (Sym)) in
 
   let ms, xs, vs = unzip3 bodies in
@@ -97,7 +97,7 @@ let system (softness: float) bodies =
         (List.map (new_vec "p") indices)
       ) in
 
-    let ham = GravSym2D.hamiltonian (GravSym2D.soft_pot softness) ms qs ps in
+    let ham = GravSym2D.hamiltonian (GravSym2D.bouncy_pot softness) ms qs ps in
     let dHam = Sym.deriv ham in
 
     let qq, pp = Tree.of_pairs qs, Tree.of_pairs ps in
