@@ -53,10 +53,10 @@ let binary_suns =
 
 let three_body =
   (* https://joemcewen.github.io/_pages/codes/3body/ *)
-  let a, b, v = (0.97000436, 0.24308753, (-.0.46620368, -.0.4323657)) in
-  [ yellow, (256., (-.a,  b), v)
-  ; green,  (256., (  a,-.b), v)
-  ; red,    (256., zeroV, (0.93240737, 0.8647314))
+  let a, b, v = (0.97000436, 0.24308753, (0.46620368, 0.4323657)) in
+  [ yellow, (256., (-.a,   b), negV v)
+  ; green,  (256., (  a, -.b), negV v)
+  ; red,    (256., zeroV, 2. *> v)
   ]
 
 let systems = [sun_two_planets; sun_contra_planets; sun_planet_moons; binary_suns; three_body]
