@@ -7,7 +7,7 @@ let link sel h = Link (sel,h)
 
 type 's painter = (float * float) -> Cairo.context -> 's -> 's
 type 's system = 's              (* initial state *)
-               * float           (* target frame period in seconds *)
+               * ('s -> float)   (* get target frame period in seconds *)
                * ('s -> bool)    (* state implies we should stop? *)
                * 's painter      (* action to paint Cairo context and update state *)
                * Gdk.Tags.event_mask list (* which events to resond to *)
@@ -17,7 +17,7 @@ type 's ui = {quit       : (unit -> unit)
              ;prepaint   : (unit -> unit)
              ;paint      : (unit -> unit)
              ;should_stop: (unit -> bool)
-             ;dt         : float
+             ;frame_period: (unit -> float)
              }
 
 let with_system setup (action: 's ui -> unit) (system: 's system) =
@@ -26,7 +26,7 @@ let with_system setup (action: 's ui -> unit) (system: 's system) =
                          ~allow_grow:true ~allow_shrink:true () in
   let area = GMisc.drawing_area ~packing:w#add () in
   let quit _ = print_endline "Quitting"; GtkMain.Main.quit () in
-  let initial_state, dt, stop, draw_cr, event_masks, links = system in
+  let initial_state, frame_period, stop, draw_cr, event_masks, links = system in
   let sref = ref initial_state in
 
   area#misc#set_can_focus true;
@@ -46,8 +46,10 @@ let with_system setup (action: 's ui -> unit) (system: 's system) =
 
   w#show ();
   Base.Exn.protect
-    ~f: (fun () -> action {quit=GMain.quit; prepaint=prepaint; paint=paint; dt=dt; should_stop=fun () -> stop !sref})
     ~finally: w#destroy
+    ~f: (fun () -> action { quit=GMain.quit; prepaint; paint
+                          ; frame_period = (fun () -> frame_period !sref)
+                          ; should_stop  = (fun () -> stop !sref)})
 
 
 let setup_double_buffer connect_stateful_handler draw_cr area _ _ =
@@ -101,7 +103,7 @@ let animate_with_timeouts (ui: 's ui) =
     if ui.should_stop () then ui.quit ();
     (* GtkBase.Widget.queue_draw area#as_widget; *)
     ui.prepaint (); ui.paint (); true
-  in ignore (Glib.Timeout.add ~ms:(int_of_float (1000.0 *. ui.dt)) ~callback:animate);
+  in ignore (Glib.Timeout.add ~ms:(int_of_float (1000.0 *. ui.frame_period ())) ~callback:animate);
   GMain.main ()
 
 let animate_with_loop (ui: 's ui) =
@@ -110,10 +112,8 @@ let animate_with_loop (ui: 's ui) =
     else if Glib.Main.iteration false && not (ui.should_stop ()) then check_pending t
     else ()
   and update t =
-    ui.prepaint ();
-    sleep_until t;
-    ui.paint ();
-    check_pending (t +. ui.dt)
+    ui.prepaint (); sleep_until t; ui.paint ();
+    check_pending (t +. ui.frame_period ())
   in update (get_time ())
 
 let animate_with_loop_max (ui: 's ui) =

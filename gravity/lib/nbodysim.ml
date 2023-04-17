@@ -6,12 +6,11 @@ let report name x = Printf.printf "\n%s = %f\n%!" name x; x
 exception IgnoredKey
 
 type 's state = { kt: float
-                ; dt: float
-                ; rt: float
                 ; kx: float
                 ; ds: float * 's
                 ; t_last: float
-                ; spf: float
+                ; spf_target: float
+                ; spf_actual: float
                 ; stop: bool
                 ; focus: int option
                 }
@@ -27,7 +26,6 @@ let fill_circle cr ((x,y), r) =
   Cairo.arc cr x y ~r ~a1:0. ~a2:two_pi;
   Cairo.Path.close cr;
   Cairo.fill cr
-
 
 let display cx cy kx (ox,oy) cr colours shapes =
   let pixel cr = uncurry max (Cairo.device_to_user_distance cr 4.0 4.0) in
@@ -46,10 +44,10 @@ let display cx cy kx (ox,oy) cr colours shapes =
   List.iter (display1 (pixel cr)) (List.combine colours shapes);
   Cairo.restore cr
 
-let position_of_nth (pos,_) i = List.nth pos i
 
 let state_machine (energy_of_state, advance, s0) colours dt t_start =
 
+  let position_of_nth (pos,_) i = List.nth pos i in
   let draw (width,height) cr state =
     let t0,s0 = state.ds in
     let origin = match state.focus with
@@ -59,22 +57,21 @@ let state_machine (energy_of_state, advance, s0) colours dt t_start =
 
     let energy = energy_of_state s0 in
     let t_now = get_time () in
-    let spf = 0.98 *. state.spf +. 0.02 *. (t_now -. state.t_last) in
-    let fps = 1. /. spf in
+    let spf_actual = 0.98 *. state.spf_actual +. 0.02 *. (t_now -. state.t_last) in
+    let fps = 1. /. spf_actual in
     let text = Printf.sprintf "t=%6.2f, H=%8.5g, fps=%4.0f  \r" t0 energy fps in
+
     Cairo.set_source_rgb cr 0.9 0.5 0.05;
     Cairo.move_to cr 8. (height -. 8.);
     Cairo.set_font_size cr 28.;
     Cairo.show_text cr text;
-    { state with rt=state.rt +. dt;
-                 ds=advance (state.kt *. dt) state.ds;
-                 t_last=t_now; spf=spf} in
-
+    { state with ds=advance (state.kt *. dt) state.ds;
+                 t_last=t_now; spf_actual} in
 
   let handle s = function
     | 'q' -> {s with stop=true}
-    | '<' -> {s with dt=(report "dt" (s.dt/.2.))}
-    | '>' -> {s with dt=(report "dt" (s.dt*.2.))}
+    | '<' -> {s with spf_target=(report "spf_target" (s.spf_target/.1.25))}
+    | '>' -> {s with spf_target=(report "spf_target" (s.spf_target*.1.25))}
     | '[' -> {s with kt=(report "kt" (s.kt/.2.))}
     | ']' -> {s with kt=(report "kt" (s.kt*.2.))}
     | 'r' -> {s with kt=(report "kt" (~-.(s.kt)))}
@@ -95,9 +92,9 @@ let state_machine (energy_of_state, advance, s0) colours dt t_start =
     try handle s (Char.chr code), true
     with IgnoredKey -> s, false in
 
-  let stop state = state.stop in
-  ( {kt=1.0; dt=dt; rt=t_start; kx=80.0; ds=(0.0, s0); spf=dt; t_last=t_start; stop=false; focus=None},
-     dt, stop, draw, [ `KEY_PRESS; `KEY_RELEASE ], [ Gtktools.link (fun cs -> cs#key_press) key_press ])
+  ( {kt=1.0; kx=80.0; ds=(0.0, s0); spf_target=dt; spf_actual=dt; t_last=t_start; stop=false; focus=None},
+    (fun s -> s.spf_target), (fun s -> s.stop), draw,
+    [ `KEY_PRESS; `KEY_RELEASE ], [ Gtktools.link (fun cs -> cs#key_press) key_press ])
   (* end of state_machine *)
 
 let stop sref = (!sref).stop
