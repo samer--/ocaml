@@ -117,11 +117,9 @@ let animate_with_loop (ui: 's ui) =
   in update (get_time ())
 
 let animate_with_loop_max (ui: 's ui) =
-  let rec check_pending t =
-    if not (Glib.Main.pending ()) then update t
-    else if Glib.Main.iteration false && not (ui.should_stop ()) then check_pending t
+  let rec check_pending () =
+    if not (Glib.Main.pending ()) then update ()
+    else if Glib.Main.iteration false && not (ui.should_stop ()) then check_pending ()
     else ()
-  and update t =
-    ui.prepaint (); ui.paint ();
-    check_pending (t +. ui.dt)
-  in update (get_time ())
+  and update () = ui.prepaint (); ui.paint (); check_pending ()
+  in update ()
