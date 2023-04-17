@@ -1,9 +1,7 @@
 open Utils
 
-type 'e signal = callback:('e -> bool) -> GtkSignal.id
-type ('s, 'e) handler = 's -> 'e -> 's * bool
-type 'e selector = GObj.event_signals -> 'e signal
-type 's link = | Link : 'e selector * ('s, 'e) handler -> 's link
+type 'e selector = GObj.event_signals -> callback:('e -> bool) -> GtkSignal.id
+type 's link = | Link : 'e selector * ('s -> 'e -> 's * bool) -> 's link
 
 let link sel h = Link (sel,h)
 
