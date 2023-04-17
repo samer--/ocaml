@@ -1,3 +1,4 @@
+type 'a pair = 'a * 'a
 
 let ( -| ) f g x = f (g x)
 let ( % ) f g x = f (g x) (* same as in Batteries *)
@@ -25,6 +26,7 @@ let rec unzip3 = function
 
 type ('a, 'b) either = Left of 'a | Right of 'b
 
+let divby y x = x /. y
 let setup_call_cleanup setup cleanup f =
   let x = setup () in
   let y = try Left (f x) with e -> Right e in
