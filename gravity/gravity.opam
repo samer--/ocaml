@@ -13,6 +13,8 @@ bug-reports: "https://github.com/samer--/ocaml/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.7"}
+  "lablgtk"
+  "cairo2-gtk"
   "odoc" {with-doc}
 ]
 build: [
