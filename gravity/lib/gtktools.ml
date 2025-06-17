@@ -22,7 +22,7 @@ type 's ui = {quit       : (unit -> unit)
 
 let with_system setup (action: 's ui -> unit) (system: 's system) =
   let _ = GtkMain.Main.init () in
-  let w = GWindow.window ~title:"Test" ~width:400 ~height:400
+  let w = GWindow.window ~title:"Test" ~width:800 ~height:600
                          ~allow_grow:true ~allow_shrink:true () in
   let area = GMisc.drawing_area ~packing:w#add () in
   let quit _ = print_endline "Quitting"; GtkMain.Main.quit () in
@@ -44,7 +44,7 @@ let with_system setup (action: 's ui -> unit) (system: 's system) =
   List.iter connect_stateful_handler links;
   let prepaint, paint = setup connect_stateful_handler draw_cr area w sref in
 
-  w#show ();
+  w#present ();
   Base.Exn.protect
     ~finally: w#destroy
     ~f: (fun () -> action { quit=GMain.quit; prepaint; paint

@@ -30,7 +30,7 @@ let fill_circle cr ((x,y), r) =
   Cairo.fill cr
 
 let display cx cy kx (ox,oy) cr colours shapes =
-  let pixel cr = uncurry max (Cairo.device_to_user_distance cr 4.0 4.0) in
+  let pixel cr = uncurry max (Cairo.device_to_user_distance cr 3.0 3.0) in
   let display1 a_pixel (colour, shape) =
     let (r,g,b) = colour in begin
       Cairo.set_source_rgb cr r g b;
@@ -65,7 +65,7 @@ let state_machine (energy_of_state, advance, s0) colours spf t_start =
 
     Cairo.set_source_rgb cr 0.9 0.5 0.05;
     Cairo.move_to cr 8. (height -. 8.);
-    Cairo.set_font_size cr 28.;
+    Cairo.set_font_size cr 18.;
     Cairo.show_text cr text;
     { state with ds=iterate state.n_steps (advance state.dt) state.ds;
                  t_last=t_now; spf_actual} in
