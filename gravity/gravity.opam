@@ -14,8 +14,8 @@ depends: [
   "ocaml"
   "dune" {>= "3.7"}
   "core_bench"
-  "lablgtk"
-  "cairo2-gtk"
+  "lablgtk3"
+  "cairo2"
   "odoc" {with-doc}
 ]
 build: [
