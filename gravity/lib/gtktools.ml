@@ -22,8 +22,8 @@ type 's ui = {quit       : (unit -> unit)
 
 let with_system setup (action: 's ui -> unit) (system: 's system) =
   let _ = GtkMain.Main.init () in
-  let w = GWindow.window ~title:"Test" ~width:800 ~height:600
-                         ~resizable:true () in
+  let w = GWindow.window ~title:"Gravity" ~width:800 ~height:600
+                         ~resizable:true ~focus_on_map:true () in
   let area = GMisc.drawing_area ~packing:w#add () in
   let quit _ = print_endline "Quitting"; GtkMain.Main.quit () in
   let initial_state, frame_period, stop, draw_cr, event_masks, links = system in
@@ -45,6 +45,7 @@ let with_system setup (action: 's ui -> unit) (system: 's system) =
   let prepaint, paint = setup connect_stateful_handler draw_cr area w sref in
 
   w#present ();
+  area#misc#grab_focus ();
   Base.Exn.protect
     ~finally: w#destroy
     ~f: (fun () -> action { quit=GMain.quit; prepaint; paint
