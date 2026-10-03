@@ -123,3 +123,51 @@ let animate_with_loop_max (ui: 's ui) =
     else ()
   and update () = ui.prepaint (); ui.paint (); check_pending ()
   in update ()
+
+(* ---- Frame-clock-synced animation ---- *)
+
+(* Like setup_pixmap_backing, but the draw callback self-schedules:
+   advance simulation, render to backing, blit, queue_draw.
+   Synced to the display refresh rate via GTK3's compositor. *)
+let setup_pixmap_draw_loop _connect draw_cr area _w sref =
+  let backing = ref (Cairo.Image.create Cairo.Image.ARGB32 ~w:400 ~h:400) in
+
+  let configure _window ev =
+    let width = GdkEvent.Configure.width ev in
+    let height = GdkEvent.Configure.height ev in
+    if width > 0 && height > 0 then
+      backing := Cairo.Image.create Cairo.Image.ARGB32 ~w:width ~h:height;
+    true
+  in
+
+  let on_draw (ctx : Cairo.context) =
+    (* Blit current backing to window *)
+    Cairo.set_source_surface ctx !backing ~x:0. ~y:0.;
+    Cairo.paint ctx;
+    (* Advance simulation and render next frame to backing *)
+    let cr = Cairo.create !backing in
+    let w = float area#misc#allocated_width in
+    let h = float area#misc#allocated_height in
+    Cairo.set_source_rgb cr 0.0 0.0 0.0;
+    Cairo.paint cr;
+    sref := draw_cr (w, h) cr !sref;
+    (* Self-schedule for next frame *)
+    ignore (area#misc#queue_draw ());
+    true
+  in
+
+  area#misc#set_double_buffered false;
+  ignore (area#event#connect#configure ~callback:(configure ()));
+  ignore (area#misc#connect#draw ~callback:on_draw);
+  ((fun () -> area#misc#queue_draw ()), (fun () -> ()))
+
+(* Animation mode that just kicks off the draw loop and enters the GTK main loop.
+   No wall-clock pacing — frames are driven by the display compositor. *)
+let animate_with_draw_loop (ui: 's ui) =
+  let check_stop () =
+    if ui.should_stop () then (ui.quit (); false)
+    else true
+  in
+  ignore (Glib.Timeout.add ~ms:200 ~callback:check_stop);
+  ui.prepaint ();  (* kick off first frame *)
+  GMain.main ()

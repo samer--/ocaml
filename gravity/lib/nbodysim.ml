@@ -73,12 +73,13 @@ let state_machine (energy_of_state, advance, s0) colours spf t_start =
   let adjust factor a n =
     (* multiply n by approx factor, keeping n an integer and a/n constant *)
     let adjusted_n = Float.(max 1.0 (round (factor *. (of_int n)))) in
-    a *. (adjusted_n /. Float.of_int n), int_of_float adjusted_n in
-
+    a *. (adjusted_n /. Float.of_int n), int_of_float adjusted_n
+  in
   let adjust' factor a n =
     (* multiply n by approx factor, keeping n an integer and a*n constant *)
     let adjusted_n = Float.(max 1.0 (round (factor *. (of_int n)))) in
-    a *. (Float.of_int n /. adjusted_n), int_of_float adjusted_n in
+    a *. (Float.of_int n /. adjusted_n), int_of_float adjusted_n
+  in
 
   let handle s = function
     | 'q' -> {s with stop=true}
