@@ -79,7 +79,7 @@ module Gravity (V: VECTOR) = struct
 end
 
 module Sim2D (I: Integrators.INTEGRATOR) = struct
-  let system (softness: float) bodies =
+  let system (pot_scale: float) bodies =
     let module Integrator = I (VList (Float2D)) in
     let module GravSym2D = Gravity (Vec2D (Sym)) in
 
@@ -95,7 +95,11 @@ module Sim2D (I: Integrators.INTEGRATOR) = struct
           (List.map (new_vec "p") indices)
         ) in
 
-      let ham = GravSym2D.hamiltonian (GravSym2D.soft_pot softness) ms qs ps in
+      let potential =
+        if pot_scale >= 0.0 then GravSym2D.soft_pot pot_scale
+        else GravSym2D.bouncy_pot (-. pot_scale)
+      in
+      let ham = GravSym2D.hamiltonian potential ms qs ps in
       let dHam = Sym.deriv ham in
 
       let qq, pp = Tree.of_pairs qs, Tree.of_pairs ps in

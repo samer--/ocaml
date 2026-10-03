@@ -19,7 +19,7 @@
  (name gravity)
  (synopsis "Gravity simulator")
  (description "Gravity simulator with equations of motion derived by differentiation of Hamiltonian.")
- (depends ocaml dune core_bench lablgtk3 cairo2)
+ (depends ocaml dune core_bench cmdliner lablgtk3 cairo2)
  (allow_empty)
  (tags
   (topics "to describe" your project)))
