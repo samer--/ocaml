@@ -43,6 +43,44 @@ module Sym = struct
 	let neg x      = const (-1.0) * x |> simplify
   let of_float x = Const x
 
+  (* ---- Pretty-printer (Format-based) ---- *)
+
+  (* Precedence levels: 0=Add, 1=Mul, 2=Pow/atom *)
+  let rec pp_prec (prec : int) (ppf : Format.formatter) (x : term) : unit =
+    let parens needed pp_child =
+      if prec > needed
+      then Format.fprintf ppf "(@[%t@])" pp_child
+      else pp_child ppf
+    in
+    match x with
+    | Add (a, Mul (Const (-1.0), b)) ->
+      parens 0 (fun ppf ->
+        Format.fprintf ppf "@[%a -@ %a@]" (pp_prec 0) a (pp_prec 1) b)
+    | Add (a, b) ->
+      parens 0 (fun ppf ->
+        Format.fprintf ppf "@[%a +@ %a@]" (pp_prec 0) a (pp_prec 1) b)
+    | Mul (Const (-1.0), b) ->
+      parens 1 (fun ppf ->
+        Format.fprintf ppf "-%a" (pp_prec 2) b)
+    | Mul (a, b) ->
+      parens 1 (fun ppf ->
+        Format.fprintf ppf "@[%a *@ %a@]" (pp_prec 1) a (pp_prec 2) b)
+    | Pow (n, a) ->
+      parens 2 (fun ppf ->
+        Format.fprintf ppf "@[%a^%s@]" (pp_prec 2) a (Utils.float_str n))
+    | Const x -> Format.fprintf ppf "%s" (Utils.float_str x)
+    | Var (_, n) -> Format.pp_print_string ppf n
+
+  let pp = pp_prec 0
+
+  let show x =
+    let buf = Buffer.create 256 in
+    let ppf = Format.formatter_of_buffer buf in
+    pp ppf x;
+    Format.pp_print_flush ppf ();
+    Buffer.contents buf
+
+  (* Keep old str for backwards compatibility if needed *)
   let rec str =
     let paren x = "(" ^ x ^ ")" in
     function
@@ -117,4 +155,28 @@ module Tree = struct
                        fun (Two (y1,y2)) s -> ff2 y2 (ff1 y1 s)
       | Seq xs      -> let ff = list_flip_fold2 (papp_fold2 f) xs in
                        fun (Seq ys) s -> ff ys s
+
+  (* ---- Pretty-printer for trees of terms ---- *)
+
+  (* Print a tree with indentation, using the given leaf printer *)
+  let rec pp_generic : type e. (Format.formatter -> 'a -> unit) -> Format.formatter -> ('a,e) t -> unit =
+    fun pp_leaf ppf -> function
+      | One x -> pp_leaf ppf x
+      | Two (x1, x2) ->
+        Format.fprintf ppf "@[<v>(@,%a,@,%a)@]" (pp_generic pp_leaf) x1 (pp_generic pp_leaf) x2
+      | Seq xs ->
+        Format.fprintf ppf "@[<v>[%a]@]"
+          (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ") (pp_generic pp_leaf))
+          xs
+
+  (* Print a tree of terms as a labeled list of 2D vectors:
+     for each body, prints "d(body_name)/dt = (dx, dy)" *)
+  let pp_coords (label_prefix : string) (ppf : Format.formatter) tree : unit =
+    let term_pairs = list_of_seq tree in
+    List.iteri (fun i pair ->
+      let x, y = pair_of_two pair in
+      Format.fprintf ppf "@[d%s_%d_1/dt = %a@]\n" label_prefix (i+1) Sym.pp x;
+      Format.fprintf ppf "@[d%s_%d_2/dt = %a@]\n" label_prefix (i+1) Sym.pp y
+    ) term_pairs;
+    Format.pp_print_flush ppf ()
 end

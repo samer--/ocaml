@@ -104,6 +104,17 @@ module Sim2D (I: Integrators.INTEGRATOR) = struct
 
       let qq, pp = Tree.of_pairs qs, Tree.of_pairs ps in
       let qd, pd = Tree.map dHam pp, Tree.map dHam qq in
+
+      (* Print symbolic derivatives for inspection *)
+      let () =
+        Printf.printf "\n=== Symbolic derivatives (system with %d bodies) ===\n%!" n;
+        Printf.printf "\n--- dq/dt (position derivatives) ---\n%!";
+        Tree.pp_coords "q" Format.std_formatter qd;
+        Printf.printf "\n--- dp/dt (momentum derivatives) ---\n%!";
+        Tree.pp_coords "p" Format.std_formatter pd;
+        Printf.printf "=== End of symbolic derivatives ===\n%!"
+      in
+
       let coors  = Tree.Two (qq, pp) in
       let h    = lambda coors (Tree.One ham) in
       let dhdq = lambda coors qd in
