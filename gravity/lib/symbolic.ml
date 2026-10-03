@@ -73,25 +73,6 @@ module Sym = struct
 
   let pp = pp_prec 0
 
-  let show x =
-    let buf = Buffer.create 256 in
-    let ppf = Format.formatter_of_buffer buf in
-    pp ppf x;
-    Format.pp_print_flush ppf ();
-    Buffer.contents buf
-
-  (* Keep old str for backwards compatibility if needed *)
-  let rec str =
-    let paren x = "(" ^ x ^ ")" in
-    function
-      | Add (a,Mul (Const -1.0, b)) -> str a ^ " - " ^ str b |> paren
-      | Add (a,b) -> str a ^ " + " ^ str b |> paren
-      | Mul (Const -1.0,b) -> "-" ^ str b |> paren
-      | Mul (a,b) -> str a ^ "*" ^ str b |> paren
-      | Pow (a,b) -> str b ^ "^" ^ string_of_float a
-      | Const x -> string_of_float x
-      | Var (_,n) -> n
-
   let rec deriv x y =
     if x=y then one
     else match x with
@@ -168,15 +149,4 @@ module Tree = struct
         Format.fprintf ppf "@[<v>[%a]@]"
           (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ") (pp_generic pp_leaf))
           xs
-
-  (* Print a tree of terms as a labeled list of 2D vectors:
-     for each body, prints "d(body_name)/dt = (dx, dy)" *)
-  let pp_coords (label_prefix : string) (ppf : Format.formatter) tree : unit =
-    let term_pairs = list_of_seq tree in
-    List.iteri (fun i pair ->
-      let x, y = pair_of_two pair in
-      Format.fprintf ppf "@[d%s_%d_1/dt = %a@]\n" label_prefix (i+1) Sym.pp x;
-      Format.fprintf ppf "@[d%s_%d_2/dt = %a@]\n" label_prefix (i+1) Sym.pp y
-    ) term_pairs;
-    Format.pp_print_flush ppf ()
 end

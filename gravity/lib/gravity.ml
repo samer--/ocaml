@@ -86,13 +86,13 @@ module Sim2D (I: Integrators.INTEGRATOR) = struct
     let ms, xs, vs = unzip3 bodies in
     let symbolic_system n =
       let indices = iota n in
-      let kth prefix k = prefix ^ "_" ^ string_of_int k in
+      let kth prefix sub = prefix ^ sub in
       let ms = List.map Sym.const ms in
       let qs, ps =
         let new_vec prefix k =
-          let f = Sym.var % (kth (kth prefix k)) in (f 1, f 2) in
-        ( (List.map (new_vec "q") indices),
-          (List.map (new_vec "p") indices)
+          let f = Sym.var % (kth (kth prefix k)) in (f "x", f "y") in
+        ( (List.map (new_vec "q" % string_of_int) indices),
+          (List.map (new_vec "p" % string_of_int) indices)
         ) in
 
       let potential =
@@ -107,12 +107,27 @@ module Sim2D (I: Integrators.INTEGRATOR) = struct
 
       (* Print symbolic derivatives for inspection *)
       let () =
-        Printf.printf "\n=== Symbolic derivatives (system with %d bodies) ===\n%!" n;
-        Printf.printf "\n--- dq/dt (position derivatives) ---\n%!";
-        Tree.pp_coords "q" Format.std_formatter qd;
-        Printf.printf "\n--- dp/dt (momentum derivatives) ---\n%!";
-        Tree.pp_coords "p" Format.std_formatter pd;
-        Printf.printf "=== End of symbolic derivatives ===\n%!"
+        Format.set_margin 120;
+        (* Print a tree of terms as a labeled list of 2D vectors:
+           for each body, prints "d(body_name)/dt = (dx, dy)" *)
+        let open Format in
+        let pp_coords (label_prefix : string) (ppf : formatter) tree : unit =
+          let term_pairs = Tree.list_of_seq tree in
+          List.iteri (fun i pair ->
+            let x, y = Tree.pair_of_two pair in
+            fprintf ppf "@[d%s%dx/dt = %a@]\n" label_prefix (i+1) Sym.pp x;
+            fprintf ppf "@[d%s%dy/dt = %a@]\n" label_prefix (i+1) Sym.pp y
+          ) term_pairs;
+          pp_print_flush ppf ()
+        in
+        printf "\n=== Symbolic derivatives (system with %d bodies) ===\n%!" n;
+        printf "\n--- Hamiltonian ---\n%!";
+        printf "%a" Sym.pp ham;
+        printf "\n--- dq/dt (position derivatives) ---\n%!";
+        printf "%a" (pp_coords "q") qd;
+        printf "\n--- dp/dt (momentum derivatives) ---\n%!";
+        printf "%a" (pp_coords "p") pd;
+        printf "=== End of symbolic derivatives ===\n%!"
       in
 
       let coors  = Tree.Two (qq, pp) in
