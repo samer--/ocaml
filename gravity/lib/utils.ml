@@ -60,6 +60,11 @@ let rec list_flip_fold2 f = function
 let rec repeat n thunk =
   if n=0 then () else (thunk (); repeat (n-1) thunk)
 
+(* Format a float nicely: strip trailing .0 for integers, use %g for others *)
+let float_str x =
+  if Float.is_integer x then Printf.sprintf "%.0f" x
+  else Printf.sprintf "%g" x
+
 (* time execution *)
 let timeit n thunk =
   let time_start = Sys.time () in
