@@ -112,9 +112,10 @@ let dt =
   Arg.(value & opt float 0.001 & info ["dt"] ~doc ~docv:"SECONDS")
 
 let softness =
-  let doc = "Softening parameter to avoid singularity at zero distance \
-             (the gravitational potential smoothly transitions to a \
-              quadratic well at this scale)." in
+  let doc = "If positive, then softening parameter to avoid singularity at zero \
+             distance (the gravitational potential smoothly transitions to a \
+             quadratic well at this scale). If negative, then attraction turns \
+             to repulsion at this scale." in
   Arg.(value & opt float 0.001 & info ["softness"] ~doc ~docv:"EPSILON")
 
 let bench =
