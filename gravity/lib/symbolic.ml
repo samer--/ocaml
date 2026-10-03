@@ -13,24 +13,43 @@ module Sym = struct
     next_id := Stdlib.(id+1); Var (id, name)
 
   let rec simplify = function
-    | Add (Const 0.0, b) -> b
-    | Add (a, Const 0.0) -> a
-    | Add (Const x, Const y) -> Const (x +. y)
-    | Add (a, b) when a=b -> Mul (Const 2.0, a) |> simplify
-    | Mul (Const 1.0, b) -> b
-    | Mul (a, Const 1.0) -> a
+    (* --- Zero and identity elimination --- *)
+    | Add (Const 0.0, b) -> simplify b
+    | Add (a, Const 0.0) -> simplify a
+    | Mul (Const 1.0, b) -> simplify b
+    | Mul (a, Const 1.0) -> simplify a
     | Mul (Const 0.0, _) -> Const 0.0
     | Mul (_, Const 0.0) -> Const 0.0
+    (* --- Constant folding --- *)
+    | Add (Const x, Const y) -> Const (x +. y)
     | Mul (Const x, Const y) -> Const (x *. y)
-    | Mul (Const a, Mul (Const b, x)) -> Mul (Const (a *. b), x) |> simplify
-    | Mul (Mul (Const b, x), Const a) -> Mul (Const (a *. b), x) |> simplify
-    | Mul (a, b) when a=b -> Pow (2.0, a) |> simplify
-    | Pow (n, Pow (m, x)) -> Pow (n *. m, x) |> simplify
+    (* --- Power simplifications --- *)
+    | Pow (n, Pow (m, x)) -> simplify (Pow (n *. m, x))
     | Pow (_, Const 0.0) -> Const 0.0
     | Pow (_, Const 1.0) -> Const 1.0
     | Pow (0.0, _) -> Const 1.0
-    | Pow (1.0, a) -> a
+    | Pow (1.0, a) -> simplify a
     | Pow (k, Const x) -> Const (x ** k)
+    (* --- Collapse a + a and a * a --- *)
+    | Add (a, b) when a = b -> simplify (Mul (Const 2.0, a))
+    | Mul (a, b) when a = b -> simplify (Pow (2.0, a))
+    (* --- Collect constants in nested Adds --- *)
+    | Add (Const x, Add (Const y, z)) -> simplify (Add (Const (x +. y), z))
+    | Add (Const x, Add (z, Const y)) -> simplify (Add (Const (x +. y), z))
+    | Add (Add (Const x, z), Const y) -> simplify (Add (Const (x +. y), z))
+    | Add (Add (z, Const x), Const y) -> simplify (Add (Const (x +. y), z))
+    (* --- Collect constants in nested Muls --- *)
+    | Mul (Const a, Mul (Const b, x)) -> simplify (Mul (Const (a *. b), x))
+    | Mul (Mul (Const b, x), Const a) -> simplify (Mul (Const (a *. b), x))
+    | Mul (Const a, Mul (x, Const b)) -> simplify (Mul (Const (a *. b), x))
+    | Mul (Mul (x, Const a), Const b) -> simplify (Mul (Const (a *. b), x))
+    (* --- Cancellation: a + (-a) = 0 --- *)
+    | Add (a, Mul (Const (-1.0), b)) when a = b -> Const 0.0
+    | Add (Mul (Const (-1.0), a), b) when a = b -> Const 0.0
+    (* --- Recursive simplification for unhandled compound cases --- *)
+    | Add (a, b) -> Add (simplify a, simplify b)
+    | Mul (a, b) -> Mul (simplify a, simplify b)
+    | Pow (n, a) -> Pow (n, simplify a)
     | x -> x
 
   let const x = Const x
