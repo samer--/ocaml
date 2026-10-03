@@ -148,7 +148,7 @@ let run system_idx integrator_idx fps0 softness bench_iters =
     Bench.bench [Bench.Test.create ~name run]
   | None ->
     let open Gtktools in
-    with_system setup_pixmap_backing animate_with_loop
+    with_system setup_pixmap_draw_loop animate_with_draw_loop
                 (Nbodysim.gtk_system (1.0 /. fps0) colours sys)
 
 let cmd =
