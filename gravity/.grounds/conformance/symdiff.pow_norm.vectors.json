@@ -1,0 +1,340 @@
+{
+  "format": "grounds-vectors/1",
+  "technique": "regions",
+  "engine": "imandrax",
+  "function": "pow_norm",
+  "symbol": "symdiff",
+  "params": [
+    "n",
+    "a"
+  ],
+  "signature": "real -> term -> term",
+  "model": {
+    "hash": "78fa239010b0b3ebdebc370db6d79517f6d81aaebcc57ea3afdd6016c5a03ddd"
+  },
+  "assuming": null,
+  "vectors": [
+    {
+      "id": "pow_norm_r1",
+      "region": 1,
+      "constraints": [
+        "n <> 0.0",
+        "not Is_a(Const, a)",
+        "n <> 1.0",
+        "not Is_a(Pow, a)"
+      ],
+      "input": {
+        "n": {
+          "$real": "2/1"
+        },
+        "a": {
+          "$c": "Add",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "4/1"
+                }
+              ]
+            },
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "3/1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Pow",
+        "args": [
+          {
+            "$real": "2/1"
+          },
+          {
+            "$c": "Add",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "4/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "3/1"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "pow_norm_r2",
+      "region": 2,
+      "constraints": [
+        "n <> 0.0",
+        "not Is_a(Const, a)",
+        "not Is_a(Pow, a)",
+        "n = 1.0"
+      ],
+      "input": {
+        "n": {
+          "$real": "1/1"
+        },
+        "a": {
+          "$c": "Add",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "1/1"
+              }
+            ]
+          },
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "0/1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "pow_norm_r3",
+      "region": 3,
+      "constraints": [
+        "Is_a(Pow, a)",
+        "n <> 0.0",
+        "not Is_a(Const, a)"
+      ],
+      "input": {
+        "n": {
+          "$real": "1/1"
+        },
+        "a": {
+          "$c": "Pow",
+          "args": [
+            {
+              "$real": "0/1"
+            },
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "1/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pow_norm_r4",
+      "region": 4,
+      "constraints": [
+        "Is_a(Const, a)",
+        "n <> 0.0",
+        "0.0 <> Destruct(Const, 0, a)",
+        "1.0 <> Destruct(Const, 0, a)",
+        "n <> 1.0"
+      ],
+      "input": {
+        "n": {
+          "$real": "2/1"
+        },
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "3/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Pow",
+        "args": [
+          {
+            "$real": "2/1"
+          },
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "3/1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "pow_norm_r5",
+      "region": 5,
+      "constraints": [
+        "Is_a(Const, a)",
+        "n <> 0.0",
+        "0.0 <> Destruct(Const, 0, a)",
+        "1.0 <> Destruct(Const, 0, a)",
+        "n = 1.0"
+      ],
+      "input": {
+        "n": {
+          "$real": "1/1"
+        },
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "2/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "2/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pow_norm_r6",
+      "region": 6,
+      "constraints": [
+        "Is_a(Const, a)",
+        "n <> 0.0",
+        "0.0 <> Destruct(Const, 0, a)",
+        "Destruct(Const, 0, a) = 1.0"
+      ],
+      "input": {
+        "n": {
+          "$real": "1/1"
+        },
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "1/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pow_norm_r7",
+      "region": 7,
+      "constraints": [
+        "Is_a(Const, a)",
+        "n <> 0.0",
+        "Destruct(Const, 0, a) = 0.0"
+      ],
+      "input": {
+        "n": {
+          "$real": "1/1"
+        },
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "0/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pow_norm_r8",
+      "region": 8,
+      "constraints": [
+        "n = 0.0"
+      ],
+      "input": {
+        "n": {
+          "$real": "0/1"
+        },
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "0/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "1/1"
+          }
+        ]
+      }
+    }
+  ],
+  "without": []
+}

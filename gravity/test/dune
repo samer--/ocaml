@@ -1,0 +1,11 @@
+(test
+ (name symdiff_conformance)
+ (libraries gravlib))
+
+(test
+ (name symdiff_corpus)
+ (libraries gravlib))
+
+(env
+  (dev
+    (flags (:standard -warn-error -A))))

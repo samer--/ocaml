@@ -1,0 +1,352 @@
+{
+  "format": "grounds-vectors/1",
+  "technique": "chosen",
+  "engine": "imandrax",
+  "function": "simplify",
+  "symbol": "symdiff",
+  "params": [
+    "x"
+  ],
+  "signature": "term -> term",
+  "model": {
+    "hash": "78fa239010b0b3ebdebc370db6d79517f6d81aaebcc57ea3afdd6016c5a03ddd"
+  },
+  "vectors": [
+    {
+      "id": "simplify_c1",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "x": {
+          "$c": "Add",
+          "args": [
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Const",
+                  "args": [
+                    {
+                      "$real": "-1/1"
+                    }
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      },
+      "why": "chosen"
+    },
+    {
+      "id": "simplify_c2",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "x": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Pow",
+        "args": [
+          {
+            "$real": "2/1"
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      },
+      "why": "chosen"
+    },
+    {
+      "id": "simplify_c3",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "x": {
+          "$c": "Pow",
+          "args": [
+            {
+              "$real": "0/1"
+            },
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "1/1"
+          }
+        ]
+      },
+      "why": "chosen"
+    },
+    {
+      "id": "simplify_c4",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "x": {
+          "$c": "Pow",
+          "args": [
+            {
+              "$real": "2/1"
+            },
+            {
+              "$c": "Pow",
+              "args": [
+                {
+                  "$real": "3/1"
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Pow",
+        "args": [
+          {
+            "$real": "6/1"
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      },
+      "why": "chosen"
+    },
+    {
+      "id": "simplify_c5",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "x": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "2/1"
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Const",
+                  "args": [
+                    {
+                      "$real": "3/1"
+                    }
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Mul",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "6/1"
+              }
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      },
+      "why": "chosen"
+    },
+    {
+      "id": "simplify_c6",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "x": {
+          "$c": "Add",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Mul",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "2/1"
+              }
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      },
+      "why": "chosen"
+    },
+    {
+      "id": "simplify_c7",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "x": {
+          "$c": "Add",
+          "args": [
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Const",
+                  "args": [
+                    {
+                      "$real": "2/1"
+                    }
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Const",
+                  "args": [
+                    {
+                      "$real": "2/1"
+                    }
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Mul",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "4/1"
+              }
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      },
+      "why": "chosen"
+    }
+  ],
+  "without": [],
+  "assuming": null
+}

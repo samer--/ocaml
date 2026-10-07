@@ -12,35 +12,54 @@ module Sym = struct
     let id = !next_id in
     next_id := Stdlib.(id+1); Var (id, name)
 
+  (* Deep normalizer: every rule fires at every depth of the term.
+     add / mul / pow_norm expect already-simplified arguments; simplify is
+     the only entry point that guarantees this. *)
+  let rec pow_norm n a =
+    if n = 0.0 then Const 1.0
+    else match a with
+      | Const 0.0 -> Const 0.0
+      | Const 1.0 -> Const 1.0
+      | Pow (m, x) -> pow_norm (n *. m) x
+      | _ when n = 1.0 -> a
+      | _ -> Pow (n, a)
+
+  let rec mul a b =
+    match a, b with
+    | Const 0.0, _ -> Const 0.0
+    | _, Const 0.0 -> Const 0.0
+    | Const 1.0, b -> b
+    | a, Const 1.0 -> a
+    | Const x, Const y -> Const (x *. y)
+    | Const a, Mul (Const b, x) -> mul (Const (a *. b)) x
+    | Mul (Const b, x), Const a -> mul (Const (a *. b)) x
+    | a, b when a = b -> pow_norm 2.0 a
+    | a, b -> Mul (a, b)
+
+  let add a b =
+    match a, b with
+    | Const 0.0, b -> b
+    | a, Const 0.0 -> a
+    | Const x, Const y -> Const (x +. y)
+    | Mul (Const (-1.0), x), b when x = b -> Const 0.0
+    | a, Mul (Const (-1.0), y) when y = a -> Const 0.0
+    | a, b when a = b -> mul (Const 2.0) a
+    | a, b -> Add (a, b)
+
   let rec simplify = function
-    | Add (Const 0.0, b) -> b
-    | Add (a, Const 0.0) -> a
-    | Add (Const x, Const y) -> Const (x +. y)
-    | Add (a, b) when a=b -> Mul (Const 2.0, a) |> simplify
-    | Mul (Const 1.0, b) -> b
-    | Mul (a, Const 1.0) -> a
-    | Mul (Const 0.0, _) -> Const 0.0
-    | Mul (_, Const 0.0) -> Const 0.0
-    | Mul (Const x, Const y) -> Const (x *. y)
-    | Mul (Const a, Mul (Const b, x)) -> Mul (Const (a *. b), x) |> simplify
-    | Mul (Mul (Const b, x), Const a) -> Mul (Const (a *. b), x) |> simplify
-    | Mul (a, b) when a=b -> Pow (2.0, a) |> simplify
-    | Pow (n, Pow (m, x)) -> Pow (n *. m, x) |> simplify
-    | Pow (_, Const 0.0) -> Const 0.0
-    | Pow (_, Const 1.0) -> Const 1.0
-    | Pow (0.0, _) -> Const 1.0
-    | Pow (1.0, a) -> a
-    | Pow (k, Const x) -> Const (x ** k)
+    | Add (a, b) -> add (simplify a) (simplify b)
+    | Mul (a, b) -> mul (simplify a) (simplify b)
+    | Pow (n, a) -> pow_norm n (simplify a)
     | x -> x
 
   let const x = Const x
   let zero    = const 0.0
   let one     = const 1.0
-  let ( + ) x y  = Add (x,y) |> simplify
-  let ( * ) x y  = Mul (x,y) |> simplify
-  let pow y x    = Pow (y,x) |> simplify
+  let ( + ) x y  = add (simplify x) (simplify y)
+  let ( * ) x y  = mul (simplify x) (simplify y)
+  let pow n a    = simplify (Pow (n, a))
   let recip x    = pow (-1.0) x
-	let neg x      = const (-1.0) * x |> simplify
+  let neg x      = mul (Const (-1.0)) (simplify x)
   let of_float x = Const x
 
   (* ---- Pretty-printer (Format-based) ---- *)

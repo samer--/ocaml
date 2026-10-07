@@ -1,0 +1,70 @@
+type term =
+  | Add of term * term
+  | Mul of term * term
+  | Pow of real * term
+  | Var of int
+  | Const of real
+
+let rec pow_norm (n : real) (a : term) : term =
+  if n = 0.0 then Const 1.0
+  else match a with
+    | Const 0.0 -> Const 0.0
+    | Const 1.0 -> Const 1.0
+    | Pow (m, x) -> pow_norm (n *. m) x
+    | _ when n = 1.0 -> a
+    | _ -> Pow (n, a)
+[@@adm a]
+
+let rec mul (a : term) (b : term) : term =
+  match a, b with
+  | Const 0.0, _ -> Const 0.0
+  | _, Const 0.0 -> Const 0.0
+  | Const 1.0, b -> b
+  | a, Const 1.0 -> a
+  | Const x, Const y -> Const (x *. y)
+  | Const a, Mul (Const b, x) -> mul (Const (a *. b)) x
+  | Mul (Const b, x), Const a -> mul (Const (a *. b)) x
+  | a, b when a = b -> pow_norm 2.0 a
+  | a, b -> Mul (a, b)
+[@@adm a, b]
+
+let add (a : term) (b : term) : term =
+  match a, b with
+  | Const 0.0, b -> b
+  | a, Const 0.0 -> a
+  | Const x, Const y -> Const (x +. y)
+  | Mul (Const (-1.0), x), b when x = b -> Const 0.0
+  | a, Mul (Const (-1.0), y) when y = a -> Const 0.0
+  | a, b when a = b -> mul (Const 2.0) a
+  | a, b -> Add (a, b)
+
+let rec simplify (x : term) : term =
+  match x with
+  | Add (a, b) -> add (simplify a) (simplify b)
+  | Mul (a, b) -> mul (simplify a) (simplify b)
+  | Pow (n, a) -> pow_norm n (simplify a)
+  | Var _ -> x
+  | Const _ -> x
+
+let const (x : real) : term = Const x
+let zero : term = Const 0.0
+let one : term = Const 1.0
+
+let ( + ) (x : term) (y : term) : term = add (simplify x) (simplify y)
+let ( * ) (x : term) (y : term) : term = mul (simplify x) (simplify y)
+let pow (n : real) (a : term) : term = simplify (Pow (n, a))
+let neg (x : term) : term = mul (Const (-1.0)) (simplify x)
+
+let rec deriv (x : term) (y : term) : term =
+  if x = y then one
+  else match x with
+    | Add (a, b) ->
+        add (simplify (deriv a y)) (simplify (deriv b y))
+    | Mul (a, b) ->
+        add (simplify (mul (simplify (deriv a y)) (simplify b)))
+            (simplify (mul (simplify a) (simplify (deriv b y))))
+    | Pow (n, a) ->
+        mul (simplify (mul (simplify (deriv a y)) (simplify (const n))))
+            (simplify (pow (n -. 1.0) a))
+    | Const _ -> zero
+    | Var _ -> zero

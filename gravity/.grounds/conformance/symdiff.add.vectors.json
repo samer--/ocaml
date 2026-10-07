@@ -1,0 +1,2654 @@
+{
+  "format": "grounds-vectors/1",
+  "technique": "regions",
+  "engine": "imandrax",
+  "function": "add",
+  "symbol": "symdiff",
+  "params": [
+    "a",
+    "b"
+  ],
+  "signature": "term -> term -> term",
+  "model": {
+    "hash": "78fa239010b0b3ebdebc370db6d79517f6d81aaebcc57ea3afdd6016c5a03ddd"
+  },
+  "assuming": null,
+  "vectors": [
+    {
+      "id": "add_r1",
+      "region": 1,
+      "constraints": [
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Mul, b)",
+        "a <> b",
+        "not Is_a(Mul, a)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        },
+        "b": {
+          "$c": "Var",
+          "args": [
+            1
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r2",
+      "region": 2,
+      "constraints": [
+        "a = b",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Mul, b)",
+        "not Is_a(Mul, a)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        },
+        "b": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Mul",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "2/1"
+              }
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r3",
+      "region": 3,
+      "constraints": [
+        "Is_a(Mul, b)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Const, Destruct(Mul, 0, b))",
+        "a <> b",
+        "not Is_a(Mul, a)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                2
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  2
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r4",
+      "region": 4,
+      "constraints": [
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Mul, 1, b) <> a",
+        "a <> b",
+        "not Is_a(Mul, a)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r5",
+      "region": 5,
+      "constraints": [
+        "Destruct(Mul, 1, b) = a",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "(-1.0) <> Destruct(Const, 0, Destruct(Mul, 0, b))",
+        "a <> b",
+        "not Is_a(Mul, a)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r6",
+      "region": 6,
+      "constraints": [
+        "Destruct(Mul, 1, b) = a",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Mul, a)",
+        "Destruct(Const, 0, Destruct(Mul, 0, b)) = (-1.0)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "-1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r7",
+      "region": 7,
+      "constraints": [
+        "Is_a(Const, b)",
+        "not Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, b)",
+        "a <> b",
+        "not Is_a(Mul, a)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          },
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "1/1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r8",
+      "region": 8,
+      "constraints": [
+        "Is_a(Const, b)",
+        "not Is_a(Const, a)",
+        "not Is_a(Mul, a)",
+        "Destruct(Const, 0, b) = 0.0"
+      ],
+      "input": {
+        "a": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "0/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Var",
+        "args": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "add_r9",
+      "region": 9,
+      "constraints": [
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Mul, b)",
+        "a <> b",
+        "not Is_a(Const, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                2
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  2
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r10",
+      "region": 10,
+      "constraints": [
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Mul, b)",
+        "a <> b",
+        "Destruct(Mul, 1, a) <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r11",
+      "region": 11,
+      "constraints": [
+        "Destruct(Mul, 1, a) = b",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Mul, b)",
+        "a <> b",
+        "(-1.0) <> Destruct(Const, 0, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r12",
+      "region": 12,
+      "constraints": [
+        "Destruct(Mul, 1, a) = b",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Mul, b)",
+        "Destruct(Const, 0, Destruct(Mul, 0, a)) = (-1.0)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "-1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r13",
+      "region": 13,
+      "constraints": [
+        "Is_a(Mul, b)",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Const, Destruct(Mul, 0, b))",
+        "a <> b",
+        "not Is_a(Const, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                2
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                3
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  2
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  3
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r14",
+      "region": 14,
+      "constraints": [
+        "a = b",
+        "Is_a(Mul, b)",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Const, Destruct(Mul, 0, b))",
+        "not Is_a(Const, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Mul",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "2/1"
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r15",
+      "region": 15,
+      "constraints": [
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Mul, 1, b) <> a",
+        "a <> b",
+        "not Is_a(Const, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                2
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  2
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r16",
+      "region": 16,
+      "constraints": [
+        "Destruct(Mul, 1, b) = a",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "(-1.0) <> Destruct(Const, 0, Destruct(Mul, 0, b))",
+        "a <> b",
+        "not Is_a(Const, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Mul",
+                "args": [
+                  {
+                    "$c": "Var",
+                    "args": [
+                      0
+                    ]
+                  },
+                  {
+                    "$c": "Var",
+                    "args": [
+                      1
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r17",
+      "region": 17,
+      "constraints": [
+        "Destruct(Mul, 1, b) = a",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Const, Destruct(Mul, 0, a))",
+        "Destruct(Const, 0, Destruct(Mul, 0, b)) = (-1.0)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "-1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r18",
+      "region": 18,
+      "constraints": [
+        "Is_a(Mul, b)",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Const, Destruct(Mul, 0, b))",
+        "a <> b",
+        "Destruct(Mul, 1, a) <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                2
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  2
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r19",
+      "region": 19,
+      "constraints": [
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Mul, 1, b) <> a",
+        "a <> b",
+        "Destruct(Mul, 1, a) <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "1/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r20",
+      "region": 20,
+      "constraints": [
+        "a = b",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Mul, 1, b) <> a",
+        "Destruct(Mul, 1, a) <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r21",
+      "region": 21,
+      "constraints": [
+        "Destruct(Mul, 1, b) = a",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "(-1.0) <> Destruct(Const, 0, Destruct(Mul, 0, b))",
+        "a <> b",
+        "Destruct(Mul, 1, a) <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Const",
+                  "args": [
+                    {
+                      "$real": "1/1"
+                    }
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "1/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Mul",
+                "args": [
+                  {
+                    "$c": "Const",
+                    "args": [
+                      {
+                        "$real": "1/1"
+                      }
+                    ]
+                  },
+                  {
+                    "$c": "Var",
+                    "args": [
+                      0
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r22",
+      "region": 22,
+      "constraints": [
+        "Destruct(Mul, 1, b) = a",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Mul, 1, a) <> b",
+        "Destruct(Const, 0, Destruct(Mul, 0, b)) = (-1.0)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "-1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Const",
+                  "args": [
+                    {
+                      "$real": "0/1"
+                    }
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r23",
+      "region": 23,
+      "constraints": [
+        "Is_a(Mul, b)",
+        "Destruct(Mul, 1, a) = b",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Const, Destruct(Mul, 0, b))",
+        "a <> b",
+        "(-1.0) <> Destruct(Const, 0, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Mul",
+                "args": [
+                  {
+                    "$c": "Var",
+                    "args": [
+                      0
+                    ]
+                  },
+                  {
+                    "$c": "Var",
+                    "args": [
+                      1
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r24",
+      "region": 24,
+      "constraints": [
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Destruct(Mul, 1, a) = b",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Mul, 1, b) <> a",
+        "a <> b",
+        "(-1.0) <> Destruct(Const, 0, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Const",
+                  "args": [
+                    {
+                      "$real": "0/1"
+                    }
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "0/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "1/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Mul",
+                "args": [
+                  {
+                    "$c": "Const",
+                    "args": [
+                      {
+                        "$real": "0/1"
+                      }
+                    ]
+                  },
+                  {
+                    "$c": "Var",
+                    "args": [
+                      0
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "0/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r25",
+      "region": 25,
+      "constraints": [
+        "Is_a(Mul, b)",
+        "Destruct(Mul, 1, a) = b",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Const, 0, Destruct(Mul, 0, a)) = (-1.0)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "-1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Mul",
+              "args": [
+                {
+                  "$c": "Var",
+                  "args": [
+                    0
+                  ]
+                },
+                {
+                  "$c": "Var",
+                  "args": [
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r26",
+      "region": 26,
+      "constraints": [
+        "Is_a(Const, b)",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, b)",
+        "a <> b",
+        "not Is_a(Const, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "1/1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r27",
+      "region": 27,
+      "constraints": [
+        "Is_a(Const, b)",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, b)",
+        "a <> b",
+        "Destruct(Mul, 1, a) <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "2/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "2/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "1/1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r28",
+      "region": 28,
+      "constraints": [
+        "Is_a(Const, b)",
+        "Destruct(Mul, 1, a) = b",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, b)",
+        "a <> b",
+        "(-1.0) <> Destruct(Const, 0, Destruct(Mul, 0, a))"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "2/1"
+                }
+              ]
+            },
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "2/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "1/1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "1/1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r29",
+      "region": 29,
+      "constraints": [
+        "Is_a(Const, b)",
+        "Destruct(Mul, 1, a) = b",
+        "Is_a(Const, Destruct(Mul, 0, a))",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, b)",
+        "Destruct(Const, 0, Destruct(Mul, 0, a)) = (-1.0)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "-1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r30",
+      "region": 30,
+      "constraints": [
+        "Is_a(Const, b)",
+        "Is_a(Mul, a)",
+        "not Is_a(Const, a)",
+        "Destruct(Const, 0, b) = 0.0"
+      ],
+      "input": {
+        "a": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "0/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Mul",
+        "args": [
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r31",
+      "region": 31,
+      "constraints": [
+        "Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Mul, b)",
+        "a <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        },
+        "b": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "1/1"
+              }
+            ]
+          },
+          {
+            "$c": "Var",
+            "args": [
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r32",
+      "region": 32,
+      "constraints": [
+        "Is_a(Mul, b)",
+        "Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, a)",
+        "not Is_a(Const, b)",
+        "not Is_a(Const, Destruct(Mul, 0, b))",
+        "a <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "1/1"
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  1
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r33",
+      "region": 33,
+      "constraints": [
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Mul, 1, b) <> a",
+        "a <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "2/1"
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Var",
+              "args": [
+                0
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "2/1"
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "1/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Var",
+                "args": [
+                  0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r34",
+      "region": 34,
+      "constraints": [
+        "Destruct(Mul, 1, b) = a",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, a)",
+        "not Is_a(Const, b)",
+        "(-1.0) <> Destruct(Const, 0, Destruct(Mul, 0, b))",
+        "a <> b"
+      ],
+      "input": {
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "2/1"
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "2/1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Add",
+        "args": [
+          {
+            "$c": "Const",
+            "args": [
+              {
+                "$real": "2/1"
+              }
+            ]
+          },
+          {
+            "$c": "Mul",
+            "args": [
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "1/1"
+                  }
+                ]
+              },
+              {
+                "$c": "Const",
+                "args": [
+                  {
+                    "$real": "2/1"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r35",
+      "region": 35,
+      "constraints": [
+        "Destruct(Mul, 1, b) = a",
+        "Is_a(Const, Destruct(Mul, 0, b))",
+        "Is_a(Mul, b)",
+        "Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, a)",
+        "not Is_a(Const, b)",
+        "Destruct(Const, 0, Destruct(Mul, 0, b)) = (-1.0)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        },
+        "b": {
+          "$c": "Mul",
+          "args": [
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "-1/1"
+                }
+              ]
+            },
+            {
+              "$c": "Const",
+              "args": [
+                {
+                  "$real": "1/1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "0/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r36",
+      "region": 36,
+      "constraints": [
+        "Is_a(Const, b)",
+        "Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, a)",
+        "0.0 <> Destruct(Const, 0, b)"
+      ],
+      "input": {
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "2/1"
+            }
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "3/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r37",
+      "region": 37,
+      "constraints": [
+        "Is_a(Const, b)",
+        "Is_a(Const, a)",
+        "0.0 <> Destruct(Const, 0, a)",
+        "Destruct(Const, 0, b) = 0.0"
+      ],
+      "input": {
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "1/1"
+            }
+          ]
+        },
+        "b": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "0/1"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Const",
+        "args": [
+          {
+            "$real": "1/1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "add_r38",
+      "region": 38,
+      "constraints": [
+        "Is_a(Const, a)",
+        "Destruct(Const, 0, a) = 0.0"
+      ],
+      "input": {
+        "a": {
+          "$c": "Const",
+          "args": [
+            {
+              "$real": "0/1"
+            }
+          ]
+        },
+        "b": {
+          "$c": "Var",
+          "args": [
+            0
+          ]
+        }
+      },
+      "expected": {
+        "$c": "Var",
+        "args": [
+          0
+        ]
+      }
+    }
+  ],
+  "without": []
+}
