@@ -23,6 +23,7 @@ let obj_field name = function
   | `Assoc fs -> (try List.assoc name fs with Not_found -> raise (Json_error ("missing field " ^ name)))
   | _ -> raise (Json_error "not an object")
 
+let as_list = function `List a -> a | _ -> raise (Json_error "not a list")
 let as_string = function `String s -> s | _ -> raise (Json_error "not a string")
 let as_int = function `Int i -> i | `Float f when Float.is_integer f -> int_of_float f
   | _ -> raise (Json_error "not an int")
@@ -38,18 +39,13 @@ let decode_real = function
 
 let rec decode_term j =
   let c = as_string (obj_field "$c" j) in
-  let args = match obj_field "args" j with
-    | `List a -> a
-    | _ -> raise (Json_error "bad args") in
-  match c, args with
+  match c, as_list (obj_field "args" j) with
   | "Add", [a; b] -> S.Add (decode_term a, decode_term b)
   | "Mul", [a; b] -> S.Mul (decode_term a, decode_term b)
   | "Pow", [n; a] -> S.Pow (decode_real n, decode_term a)
   | "Var", [i] -> S.Var (as_int i, "v")
   | "Const", [r] -> S.Const (decode_real r)
   | _ -> raise (Json_error ("bad term constructor " ^ c))
-
-let parse_file = Y.from_file
 
 let rec pp_term t =
   match t with
@@ -98,17 +94,18 @@ let () =
     with Json_error e -> prerr_endline ("ERROR: " ^ e); exit 2
   in
   let total = ref 0 and agreed = ref 0 in
+  let is_symdiff_vectors f =
+    Filename.check_suffix f ".vectors.json"
+    && String.length f >= 8 && String.sub f 0 8 = "symdiff." in
   Array.to_list (Sys.readdir root)
-  |> List.filter (fun f -> Filename.check_suffix f ".vectors.json")
+  |> List.filter is_symdiff_vectors
   |> List.sort compare
   |> List.map (Filename.concat root)
-  |> List.map parse_file
+  |> List.map Y.from_file
   |> List.iter (fun doc ->
     let fn = as_string (obj_field "function" doc) in
     let params = param_names_of_fn fn in
-    (match obj_field "vectors" doc with
-      | `List vs -> vs
-      | _ -> raise (Json_error "no vectors"))
+    as_list (obj_field "vectors" doc)
     |> List.iter (fun v ->
       let id = as_string (obj_field "id" v) in
       let expected = decode_term (obj_field "expected" v) in
