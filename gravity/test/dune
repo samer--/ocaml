@@ -1,6 +1,6 @@
 (test
  (name symdiff_conformance)
- (libraries gravlib))
+ (libraries gravlib yojson))
 
 (test
  (name symdiff_corpus)
