@@ -197,21 +197,19 @@ let () =
       else Filename.concat (find_gravity_root cwd) ".grounds/conformance"
     with Json_error e -> prerr_endline ("ERROR: " ^ e); exit 2
   in
-  let files =
-    Sys.readdir root |> Array.to_list
-    |> List.filter (fun f -> Filename.check_suffix f ".vectors.json")
-    |> List.sort compare
-    |> List.map (Filename.concat root)
-  in
   let total = ref 0 and agreed = ref 0 in
-  List.iter (fun f ->
-    let doc = parse_file f in
+  Array.to_list (Sys.readdir root)
+  |> List.filter (fun f -> Filename.check_suffix f ".vectors.json")
+  |> List.sort compare
+  |> List.map (Filename.concat root)
+  |> List.map parse_file
+  |> List.iter (fun doc ->
     let fn = as_string (obj_field "function" doc) in
     let params = param_names_of_fn fn in
-    let vectors = match obj_field "vectors" doc with
+    (match obj_field "vectors" doc with
       | JArr vs -> vs
-      | _ -> raise (Json_error "no vectors") in
-    List.iter (fun v ->
+      | _ -> raise (Json_error "no vectors"))
+    |> List.iter (fun v ->
       let id = as_string (obj_field "id" v) in
       let expected = decode_term (obj_field "expected" v) in
       let got = eval_vector fn params v in
@@ -221,7 +219,7 @@ let () =
         Printf.printf "MISMATCH %s: got %s expected %s\n%!"
           id (pp_term got) (pp_term expected)
       end
-    ) vectors
-  ) files;
+    )
+  );
   Printf.printf "conformance: %d/%d vectors agreed\n%!" !agreed !total;
   if !agreed <> !total then exit 1
