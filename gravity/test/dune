@@ -6,6 +6,14 @@
  (name symdiff_corpus)
  (libraries gravlib))
 
+(test
+ (name pairs_conformance)
+ (libraries gravlib yojson))
+
+(test
+ (name pairs_corpus)
+ (libraries gravlib))
+
 (env
   (dev
     (flags (:standard -warn-error -A))))

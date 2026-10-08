@@ -23,7 +23,6 @@ let obj_field name = function
   | `Assoc fs -> (try List.assoc name fs with Not_found -> raise (Json_error ("missing field " ^ name)))
   | _ -> raise (Json_error "not an object")
 
-let as_list = function `List a -> a | _ -> raise (Json_error "not a list")
 let as_string = function `String s -> s | _ -> raise (Json_error "not a string")
 let as_int = function `Int i -> i | `Float f when Float.is_integer f -> int_of_float f
   | _ -> raise (Json_error "not an int")
@@ -39,13 +38,18 @@ let decode_real = function
 
 let rec decode_term j =
   let c = as_string (obj_field "$c" j) in
-  match c, as_list (obj_field "args" j) with
+  let args = match obj_field "args" j with
+    | `List a -> a
+    | _ -> raise (Json_error "bad args") in
+  match c, args with
   | "Add", [a; b] -> S.Add (decode_term a, decode_term b)
   | "Mul", [a; b] -> S.Mul (decode_term a, decode_term b)
   | "Pow", [n; a] -> S.Pow (decode_real n, decode_term a)
   | "Var", [i] -> S.Var (as_int i, "v")
   | "Const", [r] -> S.Const (decode_real r)
   | _ -> raise (Json_error ("bad term constructor " ^ c))
+
+let parse_file = Y.from_file
 
 let rec pp_term t =
   match t with
@@ -98,11 +102,13 @@ let () =
   |> List.filter (fun f -> Filename.check_suffix f ".vectors.json")
   |> List.sort compare
   |> List.map (Filename.concat root)
-  |> List.map Y.from_file
+  |> List.map parse_file
   |> List.iter (fun doc ->
     let fn = as_string (obj_field "function" doc) in
     let params = param_names_of_fn fn in
-    as_list (obj_field "vectors" doc)
+    (match obj_field "vectors" doc with
+      | `List vs -> vs
+      | _ -> raise (Json_error "no vectors"))
     |> List.iter (fun v ->
       let id = as_string (obj_field "id" v) in
       let expected = decode_term (obj_field "expected" v) in

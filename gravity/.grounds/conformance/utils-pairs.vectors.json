@@ -1,0 +1,169 @@
+{
+  "format": "grounds-vectors/1",
+  "technique": "regions",
+  "engine": "imandrax",
+  "function": "pairs",
+  "symbol": "utils-pairs",
+  "params": [
+    "xs"
+  ],
+  "signature": "int list -> (int * int) list",
+  "model": {
+    "hash": "3f4b716fe57b92def2692bd46a1443b8b5b9fce1dd3189294c8a0fb561188e0e"
+  },
+  "assuming": null,
+  "vectors": [
+    {
+      "id": "pairs_r1",
+      "region": 1,
+      "constraints": [
+        "xs = []"
+      ],
+      "input": {
+        "xs": []
+      },
+      "expected": []
+    },
+    {
+      "id": "pairs_r2",
+      "region": 2,
+      "constraints": [
+        "xs <> []"
+      ],
+      "input": {
+        "xs": [
+          0
+        ]
+      },
+      "expected": []
+    },
+    {
+      "id": "pairs_c1",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "xs": []
+      },
+      "expected": [],
+      "why": "chosen"
+    },
+    {
+      "id": "pairs_c2",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "xs": [
+          1
+        ]
+      },
+      "expected": [],
+      "why": "chosen"
+    },
+    {
+      "id": "pairs_c3",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "xs": [
+          1,
+          2
+        ]
+      },
+      "expected": [
+        {
+          "$tuple": [
+            1,
+            2
+          ]
+        }
+      ],
+      "why": "chosen"
+    },
+    {
+      "id": "pairs_c4",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "xs": [
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": [
+        {
+          "$tuple": [
+            1,
+            2
+          ]
+        },
+        {
+          "$tuple": [
+            1,
+            3
+          ]
+        },
+        {
+          "$tuple": [
+            2,
+            3
+          ]
+        }
+      ],
+      "why": "chosen"
+    },
+    {
+      "id": "pairs_c5",
+      "region": null,
+      "constraints": [],
+      "input": {
+        "xs": [
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "expected": [
+        {
+          "$tuple": [
+            4,
+            5
+          ]
+        },
+        {
+          "$tuple": [
+            4,
+            6
+          ]
+        },
+        {
+          "$tuple": [
+            4,
+            7
+          ]
+        },
+        {
+          "$tuple": [
+            5,
+            6
+          ]
+        },
+        {
+          "$tuple": [
+            5,
+            7
+          ]
+        },
+        {
+          "$tuple": [
+            6,
+            7
+          ]
+        }
+      ],
+      "why": "chosen"
+    }
+  ],
+  "without": []
+}

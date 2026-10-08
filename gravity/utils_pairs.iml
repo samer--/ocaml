@@ -1,0 +1,34 @@
+(* Model of Utils.pairs over int lists (gravity/lib/utils.ml).
+   The real OCaml function is polymorphic; the behaviour is identical
+   on any type with equality, so we fix int for the model to help
+   ImandraX decomposition and proof. *)
+
+let rec pairs (xs : int list) : (int * int) list =
+  match xs with
+  | [] -> []
+  | x :: xs' ->
+    let rec aux ys =
+      match ys with
+      | [] -> []
+      | y :: ys' -> (x, y) :: aux ys'
+    in
+    aux xs' @ pairs xs'
+[@@adm xs]
+
+let rec distinct (xs : int list) : bool =
+  match xs with
+  | [] -> true
+  | x :: xs' -> not (List.mem x xs') && distinct xs'
+[@@adm xs]
+
+let rec occurs_before (x : int) (y : int) (xs : int list) : bool =
+  match xs with
+  | [] -> false
+  | z :: zs -> (z = x && List.mem y zs) || occurs_before x y zs
+[@@adm xs]
+
+let rec no_duplicates (ps : (int * int) list) : bool =
+  match ps with
+  | [] -> true
+  | p :: ps' -> not (List.mem p ps') && no_duplicates ps'
+[@@adm ps]
