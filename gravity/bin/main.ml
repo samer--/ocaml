@@ -175,10 +175,12 @@ let cmd =
     `P "$(b,sym4)   — Symplectic 4th order (Yoshida)";
     `S "KEYBOARD CONTROLS";
     `S "  q     quit";
-    `S "  <     halve integration time step";
-    `S "  >     double integration time step";
-    `S "  [     slow down simulation";
-    `S "  ]     speed up simulation";
+    `S "  <     decrease frame rate and increase steps per frame (less frequent redraws)";
+    `S "  >     increase frame rate and decrease steps per frame (more frequent redraws)";
+    `S "  [     increase time per step and reduce steps per frame (coarser integration)";
+    `S "  ]     decrease time per step and increase steps per frame (finer integration)";
+    `S "  _     slow down simulation";
+    `S "  +     speed up simulation";
     `S "  r     reverse time";
     `S "  -     zoom out";
     `S "  =     zoom in";
