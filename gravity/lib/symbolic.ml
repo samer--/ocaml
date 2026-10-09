@@ -12,35 +12,49 @@ module Sym = struct
     let id = !next_id in
     next_id := Stdlib.(id+1); Var (id, name)
 
-  let rec simplify = function
-    | Add (Const 0.0, b) -> b
-    | Add (a, Const 0.0) -> a
-    | Add (Const x, Const y) -> Const (x +. y)
-    | Add (a, b) when a=b -> Mul (Const 2.0, a) |> simplify
-    | Mul (Const 1.0, b) -> b
-    | Mul (a, Const 1.0) -> a
-    | Mul (Const 0.0, _) -> Const 0.0
-    | Mul (_, Const 0.0) -> Const 0.0
-    | Mul (Const x, Const y) -> Const (x *. y)
-    | Mul (Const a, Mul (Const b, x)) -> Mul (Const (a *. b), x) |> simplify
-    | Mul (Mul (Const b, x), Const a) -> Mul (Const (a *. b), x) |> simplify
-    | Mul (a, b) when a=b -> Pow (2.0, a) |> simplify
-    | Pow (n, Pow (m, x)) -> Pow (n *. m, x) |> simplify
-    | Pow (_, Const 0.0) -> Const 0.0
-    | Pow (_, Const 1.0) -> Const 1.0
-    | Pow (0.0, _) -> Const 1.0
-    | Pow (1.0, a) -> a
-    | Pow (k, Const x) -> Const (x ** k)
-    | x -> x
+  (* This a mechanical refactor of the original symbol algebra. It should
+   * give exactly the same simplified expressions. *)
+  let rec pow' = function
+    | (0.0, _) -> Const 1.0
+    | (1.0, a) -> a
+    | (n, a) ->
+      match a with
+      | Pow (m, x) -> pow' (n *. m, x)
+      | Const 0.0 when n < 0.0 ->
+          invalid_arg "Sym.pow: negative power of zero"
+      | Const 0.0 -> Const 0.0
+      | Const 1.0 -> Const 1.0
+      | Const x -> Const (x ** n)
+      | a -> Pow (n, a)
+
+  let rec mul' = function
+    | Const 1.0, b -> b
+    | a, Const 1.0 -> a
+    | Const 0.0, _ -> Const 0.0
+    | _, Const 0.0 -> Const 0.0
+    | Const x, Const y -> Const (x *. y)
+    | Const a, Mul (Const b, x) -> mul' (Const (a *. b), x)
+    | Mul (Const b, x), Const a -> mul' (Const (a *. b), x)
+    | a, b when a=b -> pow' (2.0, a)
+    | a, b -> Mul (a, b)
+
+  let add' = function
+    (* what about a * x + b * x --> (a+b) * x?
+     * Maybe just for constants a and b? *)
+    | (Const 0.0, b) -> b
+    | (a, Const 0.0) -> a
+    | (Const x, Const y) -> Const (x +. y)
+    | (a, b) when a=b -> mul' (Const 2.0, a)
+    | (a, b) -> Add (a, b)
 
   let const x = Const x
   let zero    = const 0.0
   let one     = const 1.0
-  let ( + ) x y  = Add (x,y) |> simplify
-  let ( * ) x y  = Mul (x,y) |> simplify
-  let pow y x    = Pow (y,x) |> simplify
+  let ( + ) x y  = add' (x,y)
+  let ( * ) x y  = mul' (x,y)
+  let pow y x    = pow' (y,x)
   let recip x    = pow (-1.0) x
-	let neg x      = const (-1.0) * x |> simplify
+	let neg x      = const (-1.0) * x
   let of_float x = Const x
 
   (* ---- Pretty-printer (Format-based) ---- *)
