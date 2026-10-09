@@ -107,9 +107,9 @@ let integrator =
   let choices = Arg.enum (List.map (fun (n,i,_) -> (n,i)) integrator_choices) in
   Arg.(value & opt choices 4 & info ["integrator"; "i"] ~doc ~docv)
 
-let dt =
-  let doc = "Simulation time step in seconds." in
-  Arg.(value & opt float 0.001 & info ["dt"] ~doc ~docv:"SECONDS")
+let fps =
+  let doc = "Initial frames per second." in
+  Arg.(value & opt float 60.0 & info ["fps"] ~doc ~docv:"FPS")
 
 let softness =
   let doc = "If positive, then softening parameter to avoid singularity at zero \
@@ -126,7 +126,7 @@ let bench =
 
 (* ---- Main ---- *)
 
-let run system_idx integrator_idx dt softness bench_iters =
+let run system_idx integrator_idx fps0 softness bench_iters =
   let open Utils in
   let module GravSim = Gravity.Sim2D (val (List.nth integrators integrator_idx)) in
   let colours, bodies = unzip (List.nth systems system_idx) in
@@ -144,12 +144,12 @@ let run system_idx integrator_idx dt softness bench_iters =
       ignore (iterate num_iter advance' (0.0, s0))
     in
     let name = Printf.sprintf "system %d" system_idx in
-    let run () = offline_run num_iter dt in
+    let run () = offline_run num_iter (1.0 /. fps0) in
     Bench.bench [Bench.Test.create ~name run]
   | None ->
     let open Gtktools in
     with_system setup_pixmap_backing animate_with_loop
-                (Nbodysim.gtk_system dt colours sys)
+                (Nbodysim.gtk_system (1.0 /. fps0) colours sys)
 
 let cmd =
   let doc = "Gravitational motion simulator with symbolic equation derivation." in
@@ -179,8 +179,8 @@ let cmd =
     `S "  >     increase frame rate and decrease steps per frame (more frequent redraws)";
     `S "  [     increase time per step and reduce steps per frame (coarser integration)";
     `S "  ]     decrease time per step and increase steps per frame (finer integration)";
-    `S "  _     slow down simulation";
-    `S "  +     speed up simulation";
+    `S "  _     speed up simulated time approx preserving integration time step";
+    `S "  +     slow down simulated time approx preserving integration time step";
     `S "  r     reverse time";
     `S "  -     zoom out";
     `S "  =     zoom in";
@@ -189,12 +189,12 @@ let cmd =
     `S "  1-4   centre view on body 1-4";
     `S Manpage.s_examples;
     `P "$(b,gravity --system sun-planet-moons --integrator verlet)";
-    `P "$(b,gravity -s three-body -i sym4 --dt 0.016 --softness 0.002)";
+    `P "$(b,gravity -s three-body -i sym4 --fps 50 --softness 0.002)";
     `P "$(b,gravity -s binary-suns --bench 1000)";
     `S Manpage.s_bugs;
     `P "Report bugs at https://github.com/samer--/ocaml/issues";
   ] in
   let info = Cmd.info "gravity" ~version:"1.1" ~doc ~sdocs ~exits ~man in
-  Cmd.v info Term.(const run $ system $ integrator $ dt $ softness $ bench)
+  Cmd.v info Term.(const run $ system $ integrator $ fps $ softness $ bench)
 
 let () = if not !Sys.interactive then exit (Cmd.eval cmd) else ()

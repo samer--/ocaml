@@ -5,8 +5,7 @@ let report name x = Printf.printf "\n%s = %f\n%!" name x; x
 
 exception IgnoredKey
 
-type 's state = { kt: float (* temporal zoom factor *)
-                ; kx: float (* spatial zoom factor *)
+type 's state = { kx: float (* spatial zoom factor *)
                 ; dt: float (* simulated time delta per step *)
                 ; n_steps: int
                 ; spf_target: float
@@ -61,7 +60,9 @@ let state_machine (energy_of_state, advance, s0) colours spf t_start =
     let t_now = get_time () in
     let spf_actual = 0.98 *. state.spf_actual +. 0.02 *. (t_now -. state.t_last) in
     let fps = 1. /. spf_actual in
-    let text = Printf.sprintf "t:%6.2f, H:%8.5g, fps:%4.0f, n: %d" t0 energy fps state.n_steps in
+    let text = Printf.sprintf "t:%6.2f, H:%8.5g, fps:%4.0f (%4.0f), n: %d n*dt: %f"
+                  t0 energy fps (1.0 /. state.spf_target) state.n_steps
+                  (float_of_int state.n_steps *. state.dt) in
 
     Cairo.set_source_rgb cr 0.9 0.5 0.05;
     Cairo.move_to cr 8. (height -. 8.);
@@ -73,22 +74,22 @@ let state_machine (energy_of_state, advance, s0) colours spf t_start =
   let adjust factor a n =
     (* multiply n by approx factor, keeping n an integer and a/n constant *)
     let adjusted_n = Float.(max 1.0 (round (factor *. (of_int n)))) in
-    a *. (adjusted_n /. Float.of_int n), int_of_float adjusted_n in
-
+    a *. (adjusted_n /. Float.of_int n), int_of_float adjusted_n
+  in
   let adjust' factor a n =
     (* multiply n by approx factor, keeping n an integer and a*n constant *)
     let adjusted_n = Float.(max 1.0 (round (factor *. (of_int n)))) in
-    a *. (Float.of_int n /. adjusted_n), int_of_float adjusted_n in
-
+    a *. (Float.of_int n /. adjusted_n), int_of_float adjusted_n
+  in
   let handle s = function
     | 'q' -> {s with stop=true}
     | '>' -> let spf_target, n_steps = adjust 0.8  s.spf_target s.n_steps in {s with spf_target; n_steps}
     | '<' -> let spf_target, n_steps = adjust 1.25 s.spf_target s.n_steps in {s with spf_target; n_steps}
-    | '_' -> let kt, n_steps = adjust 0.5 s.kt s.n_steps in {s with kt; n_steps}
-    | '+' -> let kt, n_steps = adjust 2.0 s.kt s.n_steps in {s with kt; n_steps}
+    | '+' -> let q, n_steps = adjust' 0.8 0.8 s.n_steps in {s with dt = q *. s.dt; n_steps}
+    | '_' -> let q, n_steps = adjust' 1.25 1.25 s.n_steps in {s with dt = q *. s.dt; n_steps}
     | '[' -> let dt, n_steps = adjust' 0.5 s.dt s.n_steps in {s with dt; n_steps}
     | ']' -> let dt, n_steps = adjust' 2.0 s.dt s.n_steps in {s with dt; n_steps}
-    | 'r' -> {s with kt=(report "kt" (~-.(s.kt)))}
+    | 'r' -> {s with dt=(report "dt" (~-.(s.dt)))}
     | '-' -> {s with kx=s.kx/.1.25}
     | '=' -> {s with kx=s.kx*.1.25}
     | 'i' -> {s with ds=(0.0,s0)}
@@ -104,11 +105,11 @@ let state_machine (energy_of_state, advance, s0) colours spf t_start =
     let code, _ = GdkEvent.Key.(keyval ev, string ev) in
     (* Printf.printf "keypress %d (%s)\n%!" code str; *)
     try handle s (Char.chr code), true
-    with IgnoredKey -> s, true in
-
+    with IgnoredKey -> s, true
+  in
   let n_steps = 32 in
   ( { dt=spf/.(float_of_int n_steps); n_steps; spf_target=spf; spf_actual=spf
-    ; kt=1.0; kx=80.0; t_last=t_start; ds=(0.0, s0); stop=false; focus=None},
+    ; kx=80.0; t_last=t_start; ds=(0.0, s0); stop=false; focus=None},
     (fun s -> s.spf_target), (fun s -> s.stop), draw,
     [ `KEY_PRESS; `KEY_RELEASE ], [ Gtktools.link (fun cs -> cs#key_press) key_press ])
   (* end of state_machine *)
