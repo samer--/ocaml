@@ -12,54 +12,63 @@ module Sym = struct
     let id = !next_id in
     next_id := Stdlib.(id+1); Var (id, name)
 
-  let rec simplify = function
-    (* --- Zero and identity elimination --- *)
-    | Add (Const 0.0, b) -> simplify b
-    | Add (a, Const 0.0) -> simplify a
-    | Mul (Const 1.0, b) -> simplify b
-    | Mul (a, Const 1.0) -> simplify a
-    | Mul (Const 0.0, _) -> Const 0.0
-    | Mul (_, Const 0.0) -> Const 0.0
-    (* --- Constant folding --- *)
-    | Add (Const x, Const y) -> Const (x +. y)
-    | Mul (Const x, Const y) -> Const (x *. y)
-    (* --- Power simplifications --- *)
-    | Pow (n, Pow (m, x)) -> simplify (Pow (n *. m, x))
-    | Pow (_, Const 0.0) -> Const 0.0
-    | Pow (_, Const 1.0) -> Const 1.0
-    | Pow (0.0, _) -> Const 1.0
-    | Pow (1.0, a) -> simplify a
-    | Pow (k, Const x) -> Const (x ** k)
-    (* --- Collapse a + a and a * a --- *)
-    | Add (a, b) when a = b -> simplify (Mul (Const 2.0, a))
-    | Mul (a, b) when a = b -> simplify (Pow (2.0, a))
-    (* --- Collect constants in nested Adds --- *)
-    | Add (Const x, Add (Const y, z)) -> simplify (Add (Const (x +. y), z))
-    | Add (Const x, Add (z, Const y)) -> simplify (Add (Const (x +. y), z))
-    | Add (Add (Const x, z), Const y) -> simplify (Add (Const (x +. y), z))
-    | Add (Add (z, Const x), Const y) -> simplify (Add (Const (x +. y), z))
-    (* --- Collect constants in nested Muls --- *)
-    | Mul (Const a, Mul (Const b, x)) -> simplify (Mul (Const (a *. b), x))
-    | Mul (Mul (Const b, x), Const a) -> simplify (Mul (Const (a *. b), x))
-    | Mul (Const a, Mul (x, Const b)) -> simplify (Mul (Const (a *. b), x))
-    | Mul (Mul (x, Const a), Const b) -> simplify (Mul (Const (a *. b), x))
-    (* --- Cancellation: a + (-a) = 0 --- *)
-    | Add (a, Mul (Const (-1.0), b)) when a = b -> Const 0.0
-    | Add (Mul (Const (-1.0), a), b) when a = b -> Const 0.0
-    (* --- Recursive simplification for unhandled compound cases --- *)
-    | Add (a, b) -> Add (simplify a, simplify b)
-    | Mul (a, b) -> Mul (simplify a, simplify b)
-    | Pow (n, a) -> Pow (n, simplify a)
+  let rec pow' = function
+    | 0.0, _ -> Const 1.0
+    | 1.0, a -> simplify a
+    | n, a ->
+      match a with
+      | Pow (m, x) -> pow' (n *. m, x)
+      | Const 0.0 when n < 0.0 ->
+          invalid_arg "Sym.pow: negative power of zero"
+      | Const 0.0 -> Const 0.0
+      | Const 1.0 -> Const 1.0
+      | Const x -> Const (x ** n)
+      | a -> pow' (n, simplify a)
+
+  and mul' = function
+    | Const 1.0, b -> simplify b
+    | a, Const 1.0 -> simplify a
+    | Const 0.0, _ -> Const 0.0
+    | _, Const 0.0 -> Const 0.0
+    | Const x, Const y -> Const (x *. y)
+    | Const a, Mul (Const b, x) -> mul' (Const (a *. b), x)
+    | Const a, Mul (x, Const b) -> mul' (Const (a *. b), x)
+    | Mul (Const b, x), Const a -> mul' (Const (a *. b), x)
+    | Mul (x, Const a), Const b -> mul' (Const (a *. b), x)
+    | a, b when a = b -> pow' (2.0, a)
+    | a, b -> mul' (simplify a, simplify b)
+
+  let rec add' = function
+    (* what about a * x + b * x --> (a+b) * x?
+     * Maybe just for constants a and b? *)
+    | Const 0.0, b -> simplify b
+    | a, Const 0.0 -> simplify a
+    | Const x, Const y -> Const (x +. y)
+    (* re-association rules *)
+    | Const x, Add (Const y, z) -> add' ((Const (x +. y), z))
+    | Const x, Add (z, Const y) -> add' (Const (x +. y), z)
+    | Add (Const x, z), Const y -> add' (Const (x +. y), z)
+    | Add (z, Const x), Const y -> add' (Const (x +. y), z)
+    | a, b when a = b -> mul' (Const 2.0, a)
+    (* cancellation *)
+    | a, Mul (Const (-1.0), b) when a = b -> Const 0.0
+    | Mul (Const (-1.0), a), b when a = b -> Const 0.0
+    | a, b -> add' (simplify a, simplify b)
+
+  and simplify = function
+    | Add (a, b) -> add' (a, b)
+    | Mul (a, b) -> mul' (a, b)
+    | Pow (n, a) -> pow' (n, a)
     | x -> x
 
   let const x = Const x
   let zero    = const 0.0
   let one     = const 1.0
-  let ( + ) x y  = Add (x,y) |> simplify
-  let ( * ) x y  = Mul (x,y) |> simplify
-  let pow y x    = Pow (y,x) |> simplify
+  let ( + ) x y  = add' (x,y)
+  let ( * ) x y  = mul' (x,y)
+  let pow y x    = pow' (y,x)
   let recip x    = pow (-1.0) x
-	let neg x      = const (-1.0) * x |> simplify
+	let neg x      = const (-1.0) * x
   let of_float x = Const x
 
   (* ---- Pretty-printer (Format-based) ---- *)
