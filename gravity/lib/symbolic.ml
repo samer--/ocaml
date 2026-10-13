@@ -15,9 +15,9 @@ module Sym = struct
   (* This a mechanical refactor of the original symbol algebra. It should
    * give exactly the same simplified expressions. *)
   let rec pow' = function
-    | (0.0, _) -> Const 1.0
-    | (1.0, a) -> a
-    | (n, a) ->
+    | 0.0, _ -> Const 1.0
+    | 1.0, a -> a
+    | n, a ->
       match a with
       | Pow (m, x) -> pow' (n *. m, x)
       | Const 0.0 when n < 0.0 ->
@@ -35,17 +35,25 @@ module Sym = struct
     | Const x, Const y -> Const (x *. y)
     | Const a, Mul (Const b, x) -> mul' (Const (a *. b), x)
     | Mul (Const b, x), Const a -> mul' (Const (a *. b), x)
-    | a, b when a=b -> pow' (2.0, a)
+    | a, b when a = b -> pow' (2.0, a)
     | a, b -> Mul (a, b)
 
   let add' = function
     (* what about a * x + b * x --> (a+b) * x?
      * Maybe just for constants a and b? *)
-    | (Const 0.0, b) -> b
-    | (a, Const 0.0) -> a
-    | (Const x, Const y) -> Const (x +. y)
-    | (a, b) when a=b -> mul' (Const 2.0, a)
-    | (a, b) -> Add (a, b)
+    | Const 0.0, b -> b
+    | a, Const 0.0 -> a
+    | Const x, Const y -> Const (x +. y)
+    (* re-association rules *)
+    (* | Const x, Add (Const y, z) -> add' ((Const (x +. y), z)) *)
+    (* | Const x, Add (z, Const y) -> add' (Const (x +. y), z) *)
+    (* | Add (Const x, z), Const y -> add' (Const (x +. y), z) *)
+    (* | Add (z, Const x), Const y -> add' (Const (x +. y), z) *)
+    | a, b when a = b -> mul' (Const 2.0, a)
+    (* cancellation *)
+    (* | a, Mul (Const (-1.0), b) when a = b -> Const 0.0 *)
+    (* | Mul (Const (-1.0), a), b when a = b -> Const 0.0 *)
+    | a, b -> Add (a, b)
 
   let const x = Const x
   let zero    = const 0.0
