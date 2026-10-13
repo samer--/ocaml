@@ -1,32 +1,45 @@
 (* Model of Utils.pairs over int lists (gravity/lib/utils.ml).
    The real OCaml function is polymorphic; the behaviour is identical
    on any type with equality, so we fix int for the model to help
-   ImandraX decomposition and proof. *)
+   ImandraX decomposition and proof.
+
+   pairs xs  =  [(x,y) for x at position i, y after i]  =  List.concat
+   over rows, row x pairs x with every element after it.  The real code is
+       pairs (x::xs) = List.map (pair x) xs @ pairs xs
+   which we model with the top-level helper pair_with x ys (List.map (pair x) ys)
+   so ImandraX has a recursion handle on both arguments.  [@@adm] gives the
+   decreasing argument for termination. *)
+
+let rec pair_with (x : int) (ys : int list) : (int * int) list =
+  match ys with
+  | [] -> []
+  | y :: ys' -> (x, y) :: pair_with x ys'
+[@@adm x, ys]
 
 let rec pairs (xs : int list) : (int * int) list =
   match xs with
   | [] -> []
-  | x :: xs' ->
-    let rec aux ys =
-      match ys with
-      | [] -> []
-      | y :: ys' -> (x, y) :: aux ys'
-    in
-    aux xs' @ pairs xs'
+  | x :: xs' -> pair_with x xs' @ pairs xs'
 [@@adm xs]
 
+(* distinct xs: no element occurs twice (mirrors the absence of duplicate
+   first components, which is what the no-duplicates and no-self-pairs
+   properties rely on). *)
 let rec distinct (xs : int list) : bool =
   match xs with
   | [] -> true
   | x :: xs' -> not (List.mem x xs') && distinct xs'
 [@@adm xs]
 
+(* occurs_before x y xs: x occurs somewhere in xs with y after it.
+   Used for the coverage property. *)
 let rec occurs_before (x : int) (y : int) (xs : int list) : bool =
   match xs with
   | [] -> false
   | z :: zs -> (z = x && List.mem y zs) || occurs_before x y zs
 [@@adm xs]
 
+(* no_duplicates ps: the pair list has no repeated pair. *)
 let rec no_duplicates (ps : (int * int) list) : bool =
   match ps with
   | [] -> true
